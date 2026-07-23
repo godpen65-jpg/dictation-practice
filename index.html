@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>받아쓰기 연습장</title>
+<style>
+  :root{--blue:#38a1f0;--blue1:#4aa8f0;--blue2:#1e88e5;--ink:#20364a;--line:#bfe0fb;--ok:#2e9b57;--no:#e2673b;}
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;padding:0;}
+  body{font-family:"Malgun Gothic","맑은 고딕",system-ui,sans-serif;background:linear-gradient(#eaf6ff,#f7fbff);color:var(--ink);min-height:100vh;-webkit-text-size-adjust:100%;}
+  .wrap{max-width:900px;margin:0 auto;padding:16px 14px 60px;}
+  header.top{display:flex;align-items:center;gap:10px;padding:14px 16px;background:linear-gradient(90deg,#4aa8f0,#6fc0f7);color:#fff;border-radius:18px;box-shadow:0 4px 14px rgba(60,140,220,.25);margin-bottom:14px;}
+  header.top .star{font-size:26px;}
+  header.top h1{font-size:22px;margin:0;font-weight:800;letter-spacing:-.5px;}
+  header.top .sub{margin-left:auto;font-size:13px;opacity:.95;text-align:right;line-height:1.35;}
+  .backbtn{border:none;background:#fff;color:var(--blue2);font-weight:800;font-size:16px;padding:9px 16px;border-radius:12px;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.08);}
+  .backbtn:active{transform:translateY(1px);}
+
+  /* 큰 카테고리 카드 (낱말/문장) */
+  .bigcards{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+  @media(max-width:560px){.bigcards{grid-template-columns:1fr;}}
+  .bigcard{background:#fff;border:2px solid var(--line);border-radius:22px;padding:30px 22px;cursor:pointer;text-align:center;box-shadow:0 4px 14px rgba(80,150,220,.12);transition:.12s;}
+  .bigcard:hover{border-color:var(--blue1);transform:translateY(-3px);}
+  .bigcard .em{font-size:54px;}
+  .bigcard .nm{font-size:24px;font-weight:800;margin-top:8px;}
+  .bigcard .ds{font-size:15px;color:#6f8aa2;margin-top:4px;}
+  .bigcard .pg{font-size:13px;color:#2e9b57;font-weight:800;margin-top:12px;background:#eef7ef;border-radius:20px;padding:6px 12px;display:inline-block;}
+
+  .summary{background:#fff;border:2px solid var(--line);border-radius:16px;padding:14px 16px;margin-bottom:14px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
+  .summary .big{font-size:18px;font-weight:800;}
+  .summary .muted{color:#6f8aa2;font-size:14px;font-weight:700;}
+  .contbtn{margin-left:auto;border:none;background:linear-gradient(90deg,#ffb24a,#ff9a3d);color:#fff;font-size:16px;font-weight:800;padding:12px 20px;border-radius:13px;cursor:pointer;box-shadow:0 3px 8px rgba(255,150,60,.3);}
+  .contbtn:active{transform:translateY(1px);}
+
+  .daygrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:11px;}
+  .daycard{background:#fff;border:2px solid var(--line);border-radius:15px;padding:14px 12px;cursor:pointer;text-align:left;box-shadow:0 2px 8px rgba(80,150,220,.08);position:relative;}
+  .daycard:hover{border-color:var(--blue1);}
+  .daycard .dn{font-size:17px;font-weight:800;}
+  .daycard .st{font-size:12.5px;font-weight:700;margin-top:5px;color:#7f97ac;}
+  .daycard.done{background:#f2faf5;border-color:#bfe6cd;}
+  .daycard.done .st{color:#2e9b57;}
+  .daycard .badge{position:absolute;top:10px;right:11px;font-size:16px;}
+
+  .practicehead{background:#fff;border:2px solid var(--line);border-radius:16px;padding:14px 16px;margin-bottom:14px;}
+  .practicehead .day{font-size:20px;font-weight:800;}
+  .modebar{display:flex;gap:8px;margin-top:12px;align-items:center;flex-wrap:wrap;}
+  .modebar .lbl{font-size:14px;color:#6f8aa2;font-weight:700;margin-right:2px;}
+  .toggle{display:inline-flex;background:#eaf3fb;border-radius:12px;padding:4px;}
+  .toggle button{border:none;background:transparent;padding:5px 11px;border-radius:8px;font-size:13px;font-weight:800;color:#6f8aa2;cursor:pointer;}
+  .toggle button.on{background:var(--blue2);color:#fff;}
+  .speedbtn{border:2px solid var(--line);background:#fff;color:var(--blue2);border-radius:9px;padding:5px 10px;font-size:12px;font-weight:800;cursor:pointer;}
+  .speedbtn.on{background:#fff4d9;border-color:#f4c34a;color:#b9791a;}
+
+  .qcard{background:#fff;border:2px solid var(--line);border-radius:18px;padding:16px 16px 18px;margin-bottom:14px;box-shadow:0 3px 10px rgba(80,150,220,.08);position:relative;}
+  .qcard.mo{border-color:#bfe6cd;background:#f7fcf9;}
+  .qcard.mx{border-color:#f4cdb9;background:#fff8f4;}
+  .qmeta{position:absolute;top:12px;right:14px;text-align:right;font-size:11px;color:#9ab0c2;font-weight:700;max-width:44%;line-height:1.35;}
+  .qtop{display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
+  .qnum{background:var(--blue2);color:#fff;font-weight:800;font-size:13px;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex:0 0 auto;}
+  .qcard.mo .qnum{background:var(--ok);}
+  .qcard.mx .qnum{background:var(--no);}
+  .listenbtn{border:none;background:linear-gradient(90deg,#ffb24a,#ff9a3d);color:#fff;font-size:14px;font-weight:800;padding:7px 15px;border-radius:11px;cursor:pointer;box-shadow:0 2px 6px rgba(255,150,60,.3);display:inline-flex;align-items:center;gap:5px;}
+  .listenbtn:active{transform:translateY(1px);}
+
+  .answerbox{margin-top:14px;}
+  .kbinput{width:100%;font-size:22px;padding:14px;border:2px dashed var(--line);border-radius:14px;font-family:inherit;color:var(--ink);background:#fbfdff;}
+  .kbinput:focus{outline:none;border-color:var(--blue1);border-style:solid;}
+  .kbmark{margin-top:8px;font-size:16px;font-weight:800;min-height:20px;}
+  .penhint{font-size:12px;color:#9ab0c2;margin:0 0 7px;}
+  .wongo{position:relative;width:100%;max-width:900px;}
+  .wgrid{display:grid;gap:0;width:100%;}
+  .wcell{aspect-ratio:1/1;border:1px solid var(--line);position:relative;background:#fcfeff;}
+  .wcell::before,.wcell::after{content:"";position:absolute;background:#eaf3fb;}
+  .wcell::before{left:50%;top:12%;bottom:12%;width:1px;transform:translateX(-.5px);}
+  .wcell::after{top:50%;left:12%;right:12%;height:1px;transform:translateY(-.5px);}
+  .wcanvas{position:absolute;left:0;top:0;touch-action:none;z-index:2;}
+  .clearpen{margin-top:8px;border:none;background:#eef5fb;color:#6f8aa2;font-weight:800;font-size:13px;padding:8px 14px;border-radius:10px;cursor:pointer;}
+
+  .revealbtn{margin-top:12px;border:none;background:#eef7ef;color:var(--ok);border:2px solid #bfe6cd;font-size:13px;font-weight:800;padding:6px 13px;border-radius:10px;cursor:pointer;}
+  .revealbtn:active{transform:translateY(1px);}
+  .reveal{margin-top:12px;padding:14px 16px;background:#f2faf5;border:2px solid #cdebd7;border-radius:13px;font-size:22px;font-weight:800;color:#1f7a44;display:none;line-height:1.4;}
+  .reveal.show{display:block;animation:pop .18s ease;}
+  .reveal .tag{font-size:13px;color:#5aa77a;font-weight:700;display:block;margin-bottom:4px;}
+  @keyframes pop{from{transform:scale(.97);opacity:.3;}to{transform:scale(1);opacity:1;}}
+
+  .markrow{margin-top:12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
+  .markrow .ml{font-size:13px;color:#8aa3b8;font-weight:700;}
+  .markbtn{border:2px solid var(--line);background:#fff;font-size:13px;font-weight:800;padding:6px 12px;border-radius:10px;cursor:pointer;color:#6f8aa2;}
+  .markbtn.o.on{background:#e6f6ec;border-color:var(--ok);color:var(--ok);}
+  .markbtn.x.on{background:#fdeee7;border-color:var(--no);color:var(--no);}
+
+  .navbar{display:flex;gap:10px;margin-top:6px;align-items:center;flex-wrap:wrap;}
+  .navbtn{flex:1 1 auto;border:none;border-radius:11px;padding:9px 8px;font-size:14px;font-weight:800;cursor:pointer;min-width:100px;}
+  .navbtn.prev{background:#eaf3fb;color:#5b7a95;}
+  .navbtn.next{background:var(--blue2);color:#fff;}
+  .navbtn.list{background:#fff;color:#6f8aa2;border:2px solid var(--line);}
+  .navbtn:disabled{opacity:.4;cursor:default;}
+  .hide{display:none !important;}
+  .tip{font-size:13px;color:#8aa3b8;text-align:center;margin-top:16px;line-height:1.7;}
+  .footer{text-align:center;color:#a9bccd;font-size:12px;margin-top:26px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <span class="star">⭐</span>
+    <h1>받아쓰기 연습장</h1>
+    <span class="sub" id="subInfo"></span>
+  </header>
+
+  <!-- 홈: 낱말/문장 고르기 -->
+  <section id="home">
+    <div class="bigcards" id="catCards"></div>
+    <p class="tip">🔊 <b>듣기</b>를 누르면 문제를 읽어 줘요.<br>펜(원고지)이나 키보드로 쓰고, <b>정답보기</b> 후 ⭕/✗로 표시해요.<br>소리가 안 나오면 화면을 한 번 톡 누르고 다시 눌러 주세요.</p>
+  </section>
+
+  <!-- 일차 목록 -->
+  <section id="daylist" class="hide">
+    <button class="backbtn" onclick="goHome()">← 낱말 / 문장</button>
+    <h2 id="catTitle" style="margin:12px 4px;"></h2>
+    <div class="summary">
+      <div><div class="big" id="sumBig"></div><div class="muted" id="sumMuted"></div></div>
+      <button class="contbtn" id="contBtn">▶ 이어서 하기</button>
+    </div>
+    <div class="daygrid" id="dayGrid"></div>
+  </section>
+
+  <!-- 연습 -->
+  <section id="practice" class="hide">
+    <button class="backbtn" onclick="backToDays()">← 일차 목록</button>
+    <div class="practicehead">
+      <div class="day" id="pDay"></div>
+      <div class="modebar">
+        <span class="lbl">쓰기 방법</span>
+        <div class="toggle">
+          <button id="mPen" class="on" onclick="setMode('pen')">✏️ 펜</button>
+          <button id="mKb" onclick="setMode('kb')">⌨️ 키보드</button>
+        </div>
+        <button class="speedbtn on" id="slowBtn" onclick="toggleSlow()">🐢 천천히</button>
+      </div>
+    </div>
+    <div id="qlist"></div>
+    <div class="navbar">
+      <button class="navbtn prev" id="prevBtn" onclick="prevDay()">← 이전 일차</button>
+      <button class="navbtn list" onclick="backToDays()">일차 목록</button>
+      <button class="navbtn next" id="nextBtn" onclick="nextDay()">다음 일차 →</button>
+    </div>
+    <p class="tip" id="doneTip"></p>
+  </section>
+
+  <div class="footer">엄마가 만든 받아쓰기 연습장 · 아이와 함께 매일매일 😊</div>
+</div>
+
+<script>
+const DATA = {"categories": [{"id": "word", "name": "낱말 받아쓰기", "emoji": "🔤", "desc": "한 낱말씩 또박또박", "items": [{"text": "허리", "grade": "예비초등", "unit": "1회"}, {"text": "공책", "grade": "예비초등", "unit": "1회"}, {"text": "연필", "grade": "예비초등", "unit": "1회"}, {"text": "나비", "grade": "예비초등", "unit": "1회"}, {"text": "토끼", "grade": "예비초등", "unit": "1회"}, {"text": "여우", "grade": "예비초등", "unit": "1회"}, {"text": "나무", "grade": "예비초등", "unit": "1회"}, {"text": "바나나", "grade": "예비초등", "unit": "1회"}, {"text": "사자", "grade": "예비초등", "unit": "1회"}, {"text": "하마", "grade": "예비초등", "unit": "1회"}, {"text": "노래", "grade": "예비초등", "unit": "2회"}, {"text": "별나라", "grade": "예비초등", "unit": "2회"}, {"text": "우주선", "grade": "예비초등", "unit": "2회"}, {"text": "창문", "grade": "예비초등", "unit": "2회"}, {"text": "얼굴", "grade": "예비초등", "unit": "2회"}, {"text": "항아리", "grade": "예비초등", "unit": "2회"}, {"text": "버섯", "grade": "예비초등", "unit": "2회"}, {"text": "공놀이", "grade": "예비초등", "unit": "2회"}, {"text": "고양이", "grade": "예비초등", "unit": "2회"}, {"text": "그네", "grade": "예비초등", "unit": "3회"}, {"text": "제비", "grade": "예비초등", "unit": "3회"}, {"text": "바다", "grade": "예비초등", "unit": "3회"}, {"text": "바구니", "grade": "예비초등", "unit": "3회"}, {"text": "복숭아", "grade": "예비초등", "unit": "3회"}, {"text": "지우개", "grade": "예비초등", "unit": "3회"}, {"text": "미꾸라지", "grade": "예비초등", "unit": "3회"}, {"text": "자식", "grade": "예비초등", "unit": "3회"}, {"text": "물고기", "grade": "예비초등", "unit": "3회"}, {"text": "또박또박", "grade": "예비초등", "unit": "3회"}, {"text": "황소가", "grade": "예비초등", "unit": "4회"}, {"text": "공놀이", "grade": "예비초등", "unit": "4회"}, {"text": "맛있어서", "grade": "예비초등", "unit": "4회"}, {"text": "장난감", "grade": "예비초등", "unit": "4회"}, {"text": "기차", "grade": "예비초등", "unit": "4회"}, {"text": "울음소리", "grade": "예비초등", "unit": "4회"}, {"text": "도깨비", "grade": "예비초등", "unit": "4회"}, {"text": "소원", "grade": "예비초등", "unit": "4회"}, {"text": "어머니", "grade": "예비초등", "unit": "4회"}, {"text": "눈물", "grade": "예비초등", "unit": "4회"}, {"text": "길쭉길쭉", "grade": "예비초등", "unit": "5회"}, {"text": "둥실둥실", "grade": "예비초등", "unit": "5회"}, {"text": "하늘까지", "grade": "예비초등", "unit": "5회"}, {"text": "비눗방울", "grade": "예비초등", "unit": "6회"}, {"text": "동동동", "grade": "예비초등", "unit": "6회"}, {"text": "두둥실", "grade": "예비초등", "unit": "6회"}, {"text": "고슴도치는", "grade": "예비초등", "unit": "6회"}, {"text": "뾰족뾰족", "grade": "예비초등", "unit": "6회"}, {"text": "괜찮아", "grade": "예비초등", "unit": "6회"}, {"text": "첨벙첨벙", "grade": "예비초등", "unit": "7회"}, {"text": "동글동글", "grade": "예비초등", "unit": "7회"}, {"text": "몸집", "grade": "예비초등", "unit": "7회"}, {"text": "호랑이가", "grade": "예비초등", "unit": "7회"}, {"text": "개굴개굴", "grade": "예비초등", "unit": "8회"}, {"text": "폴짝폴짝", "grade": "예비초등", "unit": "8회"}, {"text": "응애응애", "grade": "예비초등", "unit": "8회"}, {"text": "깡충깡충", "grade": "예비초등", "unit": "8회"}, {"text": "장기자랑", "grade": "예비초등", "unit": "8회"}, {"text": "부릉부릉", "grade": "예비초등", "unit": "9회"}, {"text": "삐악삐악", "grade": "예비초등", "unit": "9회"}, {"text": "가지", "grade": "1학년 1학기", "unit": "1급 글자를 만들어요"}, {"text": "배추", "grade": "1학년 1학기", "unit": "1급 글자를 만들어요"}, {"text": "제비", "grade": "1학년 1학기", "unit": "1급 글자를 만들어요"}, {"text": "시계", "grade": "1학년 1학기", "unit": "1급 글자를 만들어요"}, {"text": "기와", "grade": "1학년 1학기", "unit": "1급 글자를 만들어요"}, {"text": "돼지", "grade": "1학년 1학기", "unit": "1급 글자를 만들어요"}, {"text": "참외", "grade": "1학년 1학기", "unit": "1급 글자를 만들어요"}, {"text": "무늬", "grade": "1학년 1학기", "unit": "1급 글자를 만들어요"}, {"text": "태권도", "grade": "1학년 1학기", "unit": "1급 글자를 만들어요"}, {"text": "스웨터", "grade": "1학년 1학기", "unit": "1급 글자를 만들어요"}, {"text": "기린", "grade": "1학년 1학기", "unit": "2급 받침이 있는 글자를 읽어요"}, {"text": "낮잠", "grade": "1학년 1학기", "unit": "2급 받침이 있는 글자를 읽어요"}, {"text": "무릎", "grade": "1학년 1학기", "unit": "2급 받침이 있는 글자를 읽어요"}, {"text": "부엌", "grade": "1학년 1학기", "unit": "2급 받침이 있는 글자를 읽어요"}, {"text": "팥죽", "grade": "1학년 1학기", "unit": "2급 받침이 있는 글자를 읽어요"}, {"text": "구급차", "grade": "1학년 1학기", "unit": "2급 받침이 있는 글자를 읽어요"}, {"text": "등받이", "grade": "1학년 1학기", "unit": "2급 받침이 있는 글자를 읽어요"}, {"text": "불고기", "grade": "1학년 1학기", "unit": "2급 받침이 있는 글자를 읽어요"}, {"text": "젓가락", "grade": "1학년 1학기", "unit": "2급 받침이 있는 글자를 읽어요"}, {"text": "파랗다", "grade": "1학년 1학기", "unit": "2급 받침이 있는 글자를 읽어요"}, {"text": "청포도", "grade": "1학년 1학기", "unit": "3급 낱말과 친해져요"}, {"text": "줄넘기", "grade": "1학년 1학기", "unit": "3급 낱말과 친해져요"}, {"text": "징검다리", "grade": "1학년 1학기", "unit": "3급 낱말과 친해져요"}, {"text": "물통", "grade": "1학년 1학기", "unit": "3급 낱말과 친해져요"}, {"text": "안경", "grade": "1학년 1학기", "unit": "3급 낱말과 친해져요"}, {"text": "운동화", "grade": "1학년 1학기", "unit": "3급 낱말과 친해져요"}, {"text": "코끼리", "grade": "1학년 1학기", "unit": "3급 낱말과 친해져요"}, {"text": "빨래", "grade": "1학년 1학기", "unit": "3급 낱말과 친해져요"}, {"text": "깡충깡충", "grade": "1학년 1학기", "unit": "3급 낱말과 친해져요"}, {"text": "폴짝폴짝", "grade": "1학년 1학기", "unit": "3급 낱말과 친해져요"}, {"text": "어깨", "grade": "1학년 1학기", "unit": "4급 여러 가지 낱말을 익혀요"}, {"text": "다리", "grade": "1학년 1학기", "unit": "4급 여러 가지 낱말을 익혀요"}, {"text": "보다", "grade": "1학년 1학기", "unit": "4급 여러 가지 낱말을 익혀요"}, {"text": "만지다", "grade": "1학년 1학기", "unit": "4급 여러 가지 낱말을 익혀요"}, {"text": "할아버지", "grade": "1학년 1학기", "unit": "4급 여러 가지 낱말을 익혀요"}, {"text": "어머니", "grade": "1학년 1학기", "unit": "4급 여러 가지 낱말을 익혀요"}, {"text": "뜨겁다", "grade": "1학년 1학기", "unit": "4급 여러 가지 낱말을 익혀요"}, {"text": "미끄럼틀", "grade": "1학년 1학기", "unit": "4급 여러 가지 낱말을 익혀요"}, {"text": "도서관", "grade": "1학년 1학기", "unit": "4급 여러 가지 낱말을 익혀요"}, {"text": "횡단보도", "grade": "1학년 1학기", "unit": "4급 여러 가지 낱말을 익혀요"}]}, {"id": "sent", "name": "문장 받아쓰기", "emoji": "📝", "desc": "문장을 듣고 받아쓰기", "items": [{"text": "잘 먹겠습니다.", "grade": "1학년 1학기", "unit": "5급 반갑게 인사해요"}, {"text": "학교 다녀오겠습니다.", "grade": "1학년 1학기", "unit": "5급 반갑게 인사해요"}, {"text": "초대해 줘서 고마워.", "grade": "1학년 1학기", "unit": "5급 반갑게 인사해요"}, {"text": "생신 축하드립니다.", "grade": "1학년 1학기", "unit": "5급 반갑게 인사해요"}, {"text": "할머니, 안녕하세요?", "grade": "1학년 1학기", "unit": "5급 반갑게 인사해요"}, {"text": "내 멋진 뿔을 봐.", "grade": "1학년 1학기", "unit": "5급 반갑게 인사해요"}, {"text": "걸음 소리가 들려.", "grade": "1학년 1학기", "unit": "5급 반갑게 인사해요"}, {"text": "다리로 힘껏 달렸어요.", "grade": "1학년 1학기", "unit": "5급 반갑게 인사해요"}, {"text": "바람이 불어요.", "grade": "1학년 1학기", "unit": "5급 반갑게 인사해요"}, {"text": "외투를 벗어요.", "grade": "1학년 1학기", "unit": "5급 반갑게 인사해요"}, {"text": "오늘 밤나무를 심자.", "grade": "1학년 1학기", "unit": "6급 또박또박 읽어요"}, {"text": "강아지가 뛰어갑니다.", "grade": "1학년 1학기", "unit": "6급 또박또박 읽어요"}, {"text": "여름이 되었습니다.", "grade": "1학년 1학기", "unit": "6급 또박또박 읽어요"}, {"text": "나는 청소를 합니다.", "grade": "1학년 1학기", "unit": "6급 또박또박 읽어요"}, {"text": "원숭이가 달립니다.", "grade": "1학년 1학기", "unit": "6급 또박또박 읽어요"}, {"text": "하마가 그네를 탑니다.", "grade": "1학년 1학기", "unit": "6급 또박또박 읽어요"}, {"text": "나는 학생입니다.", "grade": "1학년 1학기", "unit": "6급 또박또박 읽어요"}, {"text": "나무는 어디로 갔어요?", "grade": "1학년 1학기", "unit": "6급 또박또박 읽어요"}, {"text": "할머니와 공원에 갑니다.", "grade": "1학년 1학기", "unit": "6급 또박또박 읽어요"}, {"text": "나도 같이 놀자.", "grade": "1학년 1학기", "unit": "6급 또박또박 읽어요"}, {"text": "낚시하러 강에 갔다.", "grade": "1학년 1학기", "unit": "7급 알맞은 낱말을 찾아요"}, {"text": "안경을 닦았다.", "grade": "1학년 1학기", "unit": "7급 알맞은 낱말을 찾아요"}, {"text": "원숭이가 달리기를 해요.", "grade": "1학년 1학기", "unit": "7급 알맞은 낱말을 찾아요"}, {"text": "여우가 자전거를 타요.", "grade": "1학년 1학기", "unit": "7급 알맞은 낱말을 찾아요"}, {"text": "나는 이를 닦습니다.", "grade": "1학년 1학기", "unit": "7급 알맞은 낱말을 찾아요"}, {"text": "사과를 깎습니다.", "grade": "1학년 1학기", "unit": "7급 알맞은 낱말을 찾아요"}, {"text": "식탁을 닦습니다.", "grade": "1학년 1학기", "unit": "7급 알맞은 낱말을 찾아요"}, {"text": "오리는 동물입니다.", "grade": "1학년 1학기", "unit": "7급 알맞은 낱말을 찾아요"}, {"text": "토끼가 딸기를 먹습니다.", "grade": "1학년 1학기", "unit": "7급 알맞은 낱말을 찾아요"}, {"text": "고양이가 책을 봅니다.", "grade": "1학년 1학기", "unit": "7급 알맞은 낱말을 찾아요"}, {"text": "꽃이 피었습니다.", "grade": "1학년 2학기", "unit": "1급 기분을 말해요"}, {"text": "노랫말이 떠오르지 않아.", "grade": "1학년 2학기", "unit": "1급 기분을 말해요"}, {"text": "나만 뜀틀에 올랐어.", "grade": "1학년 2학기", "unit": "1급 기분을 말해요"}, {"text": "친구들 모두 날 부러워해.", "grade": "1학년 2학기", "unit": "1급 기분을 말해요"}, {"text": "화산처럼 우르릉 쾅쾅!", "grade": "1학년 2학기", "unit": "1급 기분을 말해요"}, {"text": "슬퍼서 펑펑 울었어요.", "grade": "1학년 2학기", "unit": "1급 기분을 말해요"}, {"text": "도치 별명은 버럭쟁이예요.", "grade": "1학년 2학기", "unit": "1급 기분을 말해요"}, {"text": "도치는 놀이터에 갔어요.", "grade": "1학년 2학기", "unit": "1급 기분을 말해요"}, {"text": "곰이 모자를 벗습니다.", "grade": "1학년 2학기", "unit": "1급 기분을 말해요"}, {"text": "바스락 소리가 났다.", "grade": "1학년 2학기", "unit": "1급 기분을 말해요"}, {"text": "연필의 길이보다 짧다.", "grade": "1학년 2학기", "unit": "2급 낱말을 정확하게 읽어요"}, {"text": "필통에 연필이 없다.", "grade": "1학년 2학기", "unit": "2급 낱말을 정확하게 읽어요"}, {"text": "연필심이 닳았다.", "grade": "1학년 2학기", "unit": "2급 낱말을 정확하게 읽어요"}, {"text": "철수가 머리를 긁는다.", "grade": "1학년 2학기", "unit": "2급 낱말을 정확하게 읽어요"}, {"text": "무시무시한 곳이구나.", "grade": "1학년 2학기", "unit": "2급 낱말을 정확하게 읽어요"}, {"text": "철이가 쓰윽 입을 닦아요.", "grade": "1학년 2학기", "unit": "2급 낱말을 정확하게 읽어요"}, {"text": "아무 데나 둡니다.", "grade": "1학년 2학기", "unit": "2급 낱말을 정확하게 읽어요"}, {"text": "한참을 찾아야 합니다.", "grade": "1학년 2학기", "unit": "2급 낱말을 정확하게 읽어요"}, {"text": "이웃과 잘 알고 지내요.", "grade": "1학년 2학기", "unit": "2급 낱말을 정확하게 읽어요"}, {"text": "어떤 날이 멋진 날이야?", "grade": "1학년 2학기", "unit": "2급 낱말을 정확하게 읽어요"}, {"text": "파란색을 좋아하는구나.", "grade": "1학년 2학기", "unit": "3급 그림일기를 써요"}, {"text": "아빠와 시장에 갔어.", "grade": "1학년 2학기", "unit": "3급 그림일기를 써요"}, {"text": "제 꿈은 탐험가입니다.", "grade": "1학년 2학기", "unit": "3급 그림일기를 써요"}, {"text": "일곱 시에 일어났다.", "grade": "1학년 2학기", "unit": "3급 그림일기를 써요"}, {"text": "민지가 전학을 갔어.", "grade": "1학년 2학기", "unit": "3급 그림일기를 써요"}, {"text": "빨갛게 익은 사과를 땄다.", "grade": "1학년 2학기", "unit": "3급 그림일기를 써요"}, {"text": "정말 재미있었다.", "grade": "1학년 2학기", "unit": "3급 그림일기를 써요"}, {"text": "듣는 사람을 바라본다.", "grade": "1학년 2학기", "unit": "3급 그림일기를 써요"}, {"text": "귀 기울여 듣는다.", "grade": "1학년 2학기", "unit": "3급 그림일기를 써요"}, {"text": "현지가 거울을 닦습니다.", "grade": "1학년 2학기", "unit": "3급 그림일기를 써요"}, {"text": "너도 한번 먹어 봐.", "grade": "1학년 2학기", "unit": "4급 감동을 나누어요"}, {"text": "고개를 절레절레 저었다.", "grade": "1학년 2학기", "unit": "4급 감동을 나누어요"}, {"text": "생각보다 맛이 좋았다.", "grade": "1학년 2학기", "unit": "4급 감동을 나누어요"}, {"text": "자꾸만 웃음이 나왔다.", "grade": "1학년 2학기", "unit": "4급 감동을 나누어요"}, {"text": "신기한 맷돌이 있다네.", "grade": "1학년 2학기", "unit": "4급 감동을 나누어요"}, {"text": "조용히 듣고 있었습니다.", "grade": "1학년 2학기", "unit": "4급 감동을 나누어요"}, {"text": "부자가 될 수 있겠어.", "grade": "1학년 2학기", "unit": "4급 감동을 나누어요"}, {"text": "궁궐로 숨어들었습니다.", "grade": "1학년 2학기", "unit": "4급 감동을 나누어요"}, {"text": "기우뚱거리기 시작했습니다.", "grade": "1학년 2학기", "unit": "4급 감동을 나누어요"}, {"text": "할머니 댁에 가기로 했다.", "grade": "1학년 2학기", "unit": "4급 감동을 나누어요"}, {"text": "다른 글자가 됩니다.", "grade": "1학년 2학기", "unit": "5급 생각을 키워요"}, {"text": "세종 대왕입니다.", "grade": "1학년 2학기", "unit": "5급 생각을 키워요"}, {"text": "어떤 모음자가 있나요?", "grade": "1학년 2학기", "unit": "5급 생각을 키워요"}, {"text": "이건 책이거든.", "grade": "1학년 2학기", "unit": "5급 생각을 키워요"}, {"text": "이렇게 할 수 있어?", "grade": "1학년 2학기", "unit": "5급 생각을 키워요"}, {"text": "비밀번호 있어야 해?", "grade": "1학년 2학기", "unit": "5급 생각을 키워요"}, {"text": "비행기라고 생각합니다.", "grade": "1학년 2학기", "unit": "5급 생각을 키워요"}, {"text": "운동장에 나가 볼까요?", "grade": "1학년 2학기", "unit": "5급 생각을 키워요"}, {"text": "소리를 질렀다.", "grade": "1학년 2학기", "unit": "5급 생각을 키워요"}, {"text": "응원해 주고 싶었어.", "grade": "1학년 2학기", "unit": "5급 생각을 키워요"}, {"text": "쓰레기통에 버려야 해.", "grade": "1학년 2학기", "unit": "6급 문장을 읽고 써요"}, {"text": "종이를 뒤집어서 써요.", "grade": "1학년 2학기", "unit": "6급 문장을 읽고 써요"}, {"text": "너는 별이 되고 싶니?", "grade": "1학년 2학기", "unit": "6급 문장을 읽고 써요"}, {"text": "꽃향기를 맡습니다.", "grade": "1학년 2학기", "unit": "6급 문장을 읽고 써요"}, {"text": "빠르게 대피해야 합니다.", "grade": "1학년 2학기", "unit": "6급 문장을 읽고 써요"}, {"text": "세 개씩 묶었어요.", "grade": "1학년 2학기", "unit": "6급 문장을 읽고 써요"}, {"text": "가르마를 탔어요.", "grade": "1학년 2학기", "unit": "6급 문장을 읽고 써요"}, {"text": "숫자를 세었어요.", "grade": "1학년 2학기", "unit": "6급 문장을 읽고 써요"}, {"text": "토끼는 빠르다.", "grade": "1학년 2학기", "unit": "6급 문장을 읽고 써요"}, {"text": "눈앞이 캄캄했어요.", "grade": "1학년 2학기", "unit": "6급 문장을 읽고 써요"}, {"text": "어떻게 해야 하지?", "grade": "1학년 2학기", "unit": "7급 무엇이 중요할까요"}, {"text": "인형을 본 적이 있나요?", "grade": "1학년 2학기", "unit": "7급 무엇이 중요할까요"}, {"text": "빨판을 본떠 만들었습니다.", "grade": "1학년 2학기", "unit": "7급 무엇이 중요할까요"}, {"text": "어디에나 잘 달라붙습니다.", "grade": "1학년 2학기", "unit": "7급 무엇이 중요할까요"}, {"text": "가시가 많이 있습니다.", "grade": "1학년 2학기", "unit": "7급 무엇이 중요할까요"}, {"text": "아무리 찾아도 없어.", "grade": "1학년 2학기", "unit": "7급 무엇이 중요할까요"}, {"text": "탈탈 털어도 안 나와.", "grade": "1학년 2학기", "unit": "7급 무엇이 중요할까요"}, {"text": "연필도 싹 사라졌는걸.", "grade": "1학년 2학기", "unit": "7급 무엇이 중요할까요"}, {"text": "가방 속을 들여다봤어.", "grade": "1학년 2학기", "unit": "7급 무엇이 중요할까요"}, {"text": "알림장이 어디 갔지?", "grade": "1학년 2학기", "unit": "7급 무엇이 중요할까요"}, {"text": "다시는 너랑 노나 봐.", "grade": "1학년 2학기", "unit": "8급 느끼고 표현해요"}, {"text": "책상 감기 들었다.", "grade": "1학년 2학기", "unit": "8급 느끼고 표현해요"}, {"text": "사랑받고 말 거니까.", "grade": "1학년 2학기", "unit": "8급 느끼고 표현해요"}, {"text": "밤새 열심히 만들었어.", "grade": "1학년 2학기", "unit": "8급 느끼고 표현해요"}, {"text": "브로콜리수프 완성!", "grade": "1학년 2학기", "unit": "8급 느끼고 표현해요"}, {"text": "잘못을 깨달았습니다.", "grade": "1학년 2학기", "unit": "8급 느끼고 표현해요"}, {"text": "난 곧 부자가 될 거야.", "grade": "1학년 2학기", "unit": "8급 느끼고 표현해요"}, {"text": "건널목에서 마주쳤습니다.", "grade": "1학년 2학기", "unit": "8급 느끼고 표현해요"}, {"text": "어디 들렀다 갈까.", "grade": "1학년 2학기", "unit": "8급 느끼고 표현해요"}, {"text": "아무런 반응이 없네.", "grade": "1학년 2학기", "unit": "8급 느끼고 표현해요"}, {"text": "제 꿈은 과학자입니다.", "grade": "2학년 1학기", "unit": "1급 만나서 반가워요!"}, {"text": "오빠가 셋이에요.", "grade": "2학년 1학기", "unit": "1급 만나서 반가워요!"}, {"text": "신발은 늘 새것이니까요.", "grade": "2학년 1학기", "unit": "1급 만나서 반가워요!"}, {"text": "빛나는 것 좀 봐!", "grade": "2학년 1학기", "unit": "1급 만나서 반가워요!"}, {"text": "모험을 떠나겠어!", "grade": "2학년 1학기", "unit": "1급 만나서 반가워요!"}, {"text": "엉덩방아를 찧었습니다.", "grade": "2학년 1학기", "unit": "1급 만나서 반가워요!"}, {"text": "함빡 젖고 말았어요.", "grade": "2학년 1학기", "unit": "1급 만나서 반가워요!"}, {"text": "신발이 짝짝이잖아.", "grade": "2학년 1학기", "unit": "1급 만나서 반가워요!"}, {"text": "머리를 묶고 다닙니다.", "grade": "2학년 1학기", "unit": "1급 만나서 반가워요!"}, {"text": "끝까지 듣고 나서 말해요.", "grade": "2학년 1학기", "unit": "1급 만나서 반가워요!"}, {"text": "넌 밝게 웃어.", "grade": "2학년 1학기", "unit": "2급 말의 재미가 솔솔"}, {"text": "말놀이를 하니 재미있어.", "grade": "2학년 1학기", "unit": "2급 말의 재미가 솔솔"}, {"text": "고추장은 매워.", "grade": "2학년 1학기", "unit": "2급 말의 재미가 솔솔"}, {"text": "다른 말을 덧붙인다.", "grade": "2학년 1학기", "unit": "2급 말의 재미가 솔솔"}, {"text": "귀 기울여 들어야 해.", "grade": "2학년 1학기", "unit": "2급 말의 재미가 솔솔"}, {"text": "어떤 낱말을 고를까?", "grade": "2학년 1학기", "unit": "2급 말의 재미가 솔솔"}, {"text": "김밥을 먹었다.", "grade": "2학년 1학기", "unit": "2급 말의 재미가 솔솔"}, {"text": "준비물을 빨리 챙겼다.", "grade": "2학년 1학기", "unit": "2급 말의 재미가 솔솔"}, {"text": "가슴이 콩닥콩닥 뛰었다.", "grade": "2학년 1학기", "unit": "2급 말의 재미가 솔솔"}, {"text": "아주 시원시원하네!", "grade": "2학년 1학기", "unit": "2급 말의 재미가 솔솔"}, {"text": "넓은 옥수수밭에 갔다.", "grade": "2학년 1학기", "unit": "3급 겪은 일을 나타내요"}, {"text": "활짝 웃으셨다.", "grade": "2학년 1학기", "unit": "3급 겪은 일을 나타내요"}, {"text": "말이 힘차게 달려온다.", "grade": "2학년 1학기", "unit": "3급 겪은 일을 나타내요"}, {"text": "날갯짓을 우아하게 한다.", "grade": "2학년 1학기", "unit": "3급 겪은 일을 나타내요"}, {"text": "넓은 하늘로 발사되었다.", "grade": "2학년 1학기", "unit": "3급 겪은 일을 나타내요"}, {"text": "조롱조롱 열매를 맺었다.", "grade": "2학년 1학기", "unit": "3급 겪은 일을 나타내요"}, {"text": "고소한 군밤을 먹었다.", "grade": "2학년 1학기", "unit": "3급 겪은 일을 나타내요"}, {"text": "세 명씩 달리기를 했다.", "grade": "2학년 1학기", "unit": "3급 겪은 일을 나타내요"}, {"text": "너무 긴장되고 떨렸다.", "grade": "2학년 1학기", "unit": "3급 겪은 일을 나타내요"}, {"text": "기분이 참 좋았다.", "grade": "2학년 1학기", "unit": "3급 겪은 일을 나타내요"}, {"text": "누가 누가 잠자나.", "grade": "2학년 1학기", "unit": "4급 분위기를 살려 읽어요"}, {"text": "꼬박꼬박 잠자지.", "grade": "2학년 1학기", "unit": "4급 분위기를 살려 읽어요"}, {"text": "받침이 있는 낱말입니다.", "grade": "2학년 1학기", "unit": "4급 분위기를 살려 읽어요"}, {"text": "눈이 와서 눈을 밟다.", "grade": "2학년 1학기", "unit": "4급 분위기를 살려 읽어요"}, {"text": "분류해서 버려요.", "grade": "2학년 1학기", "unit": "4급 분위기를 살려 읽어요"}, {"text": "함께 실천해요.", "grade": "2학년 1학기", "unit": "4급 분위기를 살려 읽어요"}, {"text": "골목으로 나간다.", "grade": "2학년 1학기", "unit": "4급 분위기를 살려 읽어요"}, {"text": "목도리를 해 준다.", "grade": "2학년 1학기", "unit": "4급 분위기를 살려 읽어요"}, {"text": "나는 오늘이 좋아.", "grade": "2학년 1학기", "unit": "4급 분위기를 살려 읽어요"}, {"text": "대답할 수 있을 거야.", "grade": "2학년 1학기", "unit": "4급 분위기를 살려 읽어요"}, {"text": "함께 놀이터로 나갔다.", "grade": "2학년 1학기", "unit": "5급 마음을 짐작해요"}, {"text": "힘차게 밟았다.", "grade": "2학년 1학기", "unit": "5급 마음을 짐작해요"}, {"text": "가슴이 두근거렸어요.", "grade": "2학년 1학기", "unit": "5급 마음을 짐작해요"}, {"text": "조금 낯선 눈치였어요.", "grade": "2학년 1학기", "unit": "5급 마음을 짐작해요"}, {"text": "걸음이 빨라졌지 뭐니?", "grade": "2학년 1학기", "unit": "5급 마음을 짐작해요"}, {"text": "기름때를 지우고 계셨다.", "grade": "2학년 1학기", "unit": "5급 마음을 짐작해요"}, {"text": "꽃향기를 맡습니다.", "grade": "2학년 1학기", "unit": "5급 마음을 짐작해요"}, {"text": "컵을 쟁반에 받칩니다.", "grade": "2학년 1학기", "unit": "5급 마음을 짐작해요"}, {"text": "삶은 밤 줄게.", "grade": "2학년 1학기", "unit": "5급 마음을 짐작해요"}, {"text": "하나씩 나눠 줬어요.", "grade": "2학년 1학기", "unit": "5급 마음을 짐작해요"}, {"text": "본 적이 있나요?", "grade": "2학년 1학기", "unit": "6급 자신의 생각을 표현해요"}, {"text": "흙에서 얻습니다.", "grade": "2학년 1학기", "unit": "6급 자신의 생각을 표현해요"}, {"text": "잎까지 전달합니다.", "grade": "2학년 1학기", "unit": "6급 자신의 생각을 표현해요"}, {"text": "산으로 가는 건 어떨까요?", "grade": "2학년 1학기", "unit": "6급 자신의 생각을 표현해요"}, {"text": "많이 못 탔거든요.", "grade": "2학년 1학기", "unit": "6급 자신의 생각을 표현해요"}, {"text": "생각이 각자 다르네요.", "grade": "2학년 1학기", "unit": "6급 자신의 생각을 표현해요"}, {"text": "한마디씩 했습니다.", "grade": "2학년 1학기", "unit": "6급 자신의 생각을 표현해요"}, {"text": "고개를 끄덕였습니다.", "grade": "2학년 1학기", "unit": "6급 자신의 생각을 표현해요"}, {"text": "지구를 무척 사랑해요.", "grade": "2학년 1학기", "unit": "6급 자신의 생각을 표현해요"}, {"text": "친구가 많잖아요?", "grade": "2학년 1학기", "unit": "6급 자신의 생각을 표현해요"}, {"text": "힘내! 잘할 수 있어.", "grade": "2학년 1학기", "unit": "7급 마음을 담아서 말해요"}, {"text": "머리핀을 주웠다.", "grade": "2학년 1학기", "unit": "7급 마음을 담아서 말해요"}, {"text": "뿌듯하고 행복했다.", "grade": "2학년 1학기", "unit": "7급 마음을 담아서 말해요"}, {"text": "도서관에서 책을 빌렸어.", "grade": "2학년 1학기", "unit": "7급 마음을 담아서 말해요"}, {"text": "앞을 잘 보고 다녀야지.", "grade": "2학년 1학기", "unit": "7급 마음을 담아서 말해요"}, {"text": "화가 많이 났구나.", "grade": "2학년 1학기", "unit": "7급 마음을 담아서 말해요"}, {"text": "빗방울이 쏟아졌습니다.", "grade": "2학년 1학기", "unit": "7급 마음을 담아서 말해요"}, {"text": "정답게 말했습니다.", "grade": "2학년 1학기", "unit": "7급 마음을 담아서 말해요"}, {"text": "금메달을 땄다.", "grade": "2학년 1학기", "unit": "7급 마음을 담아서 말해요"}, {"text": "고마웠고 기분이 좋았다.", "grade": "2학년 1학기", "unit": "7급 마음을 담아서 말해요"}, {"text": "마음이 느껴졌어.", "grade": "2학년 1학기", "unit": "8급 다양한 작품을 감상해요"}, {"text": "놀이터에서 만나자.", "grade": "2학년 1학기", "unit": "8급 다양한 작품을 감상해요"}, {"text": "개구리가 물었어요.", "grade": "2학년 1학기", "unit": "8급 다양한 작품을 감상해요"}, {"text": "종이를 찾았어요.", "grade": "2학년 1학기", "unit": "8급 다양한 작품을 감상해요"}, {"text": "편지를 썼어요.", "grade": "2학년 1학기", "unit": "8급 다양한 작품을 감상해요"}, {"text": "봉투에다 넣었어요.", "grade": "2학년 1학기", "unit": "8급 다양한 작품을 감상해요"}, {"text": "벼를 잘 베면 되지요?", "grade": "2학년 1학기", "unit": "8급 다양한 작품을 감상해요"}, {"text": "다치지 않도록 해라.", "grade": "2학년 1학기", "unit": "8급 다양한 작품을 감상해요"}, {"text": "깜박 잊은 게 있구나.", "grade": "2학년 1학기", "unit": "8급 다양한 작품을 감상해요"}, {"text": "많이 아껴 주고 싶어요.", "grade": "2학년 1학기", "unit": "8급 다양한 작품을 감상해요"}, {"text": "호호거리며 먹고 싶어.", "grade": "2학년 2학기", "unit": "1급 장면을 상상하며"}, {"text": "오늘 급식은 짜장면이다!", "grade": "2학년 2학기", "unit": "1급 장면을 상상하며"}, {"text": "걱정도 점점 늘어 갔어.", "grade": "2학년 2학기", "unit": "1급 장면을 상상하며"}, {"text": "하얗고 예쁜 집이 있었어.", "grade": "2학년 2학기", "unit": "1급 장면을 상상하며"}, {"text": "집을 망가뜨릴지도 몰라.", "grade": "2학년 2학기", "unit": "1급 장면을 상상하며"}, {"text": "지쳐서 곯아떨어졌어.", "grade": "2학년 2학기", "unit": "1급 장면을 상상하며"}, {"text": "옷장이 정말 멋있어요.", "grade": "2학년 2학기", "unit": "1급 장면을 상상하며"}, {"text": "잠을 한숨도 못 잤어.", "grade": "2학년 2학기", "unit": "1급 장면을 상상하며"}, {"text": "어디가 고장 난 거죠?", "grade": "2학년 2학기", "unit": "1급 장면을 상상하며"}, {"text": "절대 고치지 않을 거야.", "grade": "2학년 2학기", "unit": "1급 장면을 상상하며"}, {"text": "기분이 안 좋아 보인다.", "grade": "2학년 2학기", "unit": "2급 서로 존중해요"}, {"text": "걱정해 줘서 고마워.", "grade": "2학년 2학기", "unit": "2급 서로 존중해요"}, {"text": "가위 좀 빌려줄래?", "grade": "2학년 2학기", "unit": "2급 서로 존중해요"}, {"text": "나랑 같이 사용하자.", "grade": "2학년 2학기", "unit": "2급 서로 존중해요"}, {"text": "너와 헤어져서 아쉬워.", "grade": "2학년 2학기", "unit": "2급 서로 존중해요"}, {"text": "목소리가 참 예쁘구나.", "grade": "2학년 2학기", "unit": "2급 서로 존중해요"}, {"text": "칭찬해 주니까 뿌듯해.", "grade": "2학년 2학기", "unit": "2급 서로 존중해요"}, {"text": "너무 실망하지 마.", "grade": "2학년 2학기", "unit": "2급 서로 존중해요"}, {"text": "사물함에 다 넣어야겠어.", "grade": "2학년 2학기", "unit": "2급 서로 존중해요"}, {"text": "물통이 어디 있는지 아니?", "grade": "2학년 2학기", "unit": "2급 서로 존중해요"}, {"text": "동그란 모양입니다.", "grade": "2학년 2학기", "unit": "3급 내용을 살펴요"}, {"text": "상대는 알 수가 없잖아.", "grade": "2학년 2학기", "unit": "3급 내용을 살펴요"}, {"text": "내 사과를 받아 줄래?", "grade": "2학년 2학기", "unit": "3급 내용을 살펴요"}, {"text": "약속도 해야 한단다.", "grade": "2학년 2학기", "unit": "3급 내용을 살펴요"}, {"text": "쓸어 모으는 청소 도구야.", "grade": "2학년 2학기", "unit": "3급 내용을 살펴요"}, {"text": "끈으로 동여매지.", "grade": "2학년 2학기", "unit": "3급 내용을 살펴요"}, {"text": "이름도 가지가지야.", "grade": "2학년 2학기", "unit": "3급 내용을 살펴요"}, {"text": "옷차림이 달라집니다.", "grade": "2학년 2학기", "unit": "3급 내용을 살펴요"}, {"text": "특별한 옷을 입습니다.", "grade": "2학년 2학기", "unit": "3급 내용을 살펴요"}, {"text": "앞치마를 두릅니다.", "grade": "2학년 2학기", "unit": "3급 내용을 살펴요"}, {"text": "즐거운 시간 보냈나요?", "grade": "2학년 2학기", "unit": "4급 마음을 전해요"}, {"text": "정말 멋진 작품들이에요!", "grade": "2학년 2학기", "unit": "4급 마음을 전해요"}, {"text": "여기 상추 씨앗이 있어.", "grade": "2학년 2학기", "unit": "4급 마음을 전해요"}, {"text": "어떻게 들까 걱정했거든.", "grade": "2학년 2학기", "unit": "4급 마음을 전해요"}, {"text": "앞으로도 친하게 지내자.", "grade": "2학년 2학기", "unit": "4급 마음을 전해요"}, {"text": "값을 치르고 가야지.", "grade": "2학년 2학기", "unit": "4급 마음을 전해요"}, {"text": "냄새 맡은 값이라니요?", "grade": "2학년 2학기", "unit": "4급 마음을 전해요"}, {"text": "엽전 소리를 들었지요?", "grade": "2학년 2학기", "unit": "4급 마음을 전해요"}, {"text": "어깨를 들썩거렸습니다.", "grade": "2학년 2학기", "unit": "4급 마음을 전해요"}, {"text": "보답을 하고 싶네만.", "grade": "2학년 2학기", "unit": "4급 마음을 전해요"}, {"text": "내가 가르쳐 줄게.", "grade": "2학년 2학기", "unit": "5급 바른 말로 이야기 나누어요"}, {"text": "일부러 물에 빠졌어요.", "grade": "2학년 2학기", "unit": "5급 바른 말로 이야기 나누어요"}, {"text": "계산이 틀렸습니다.", "grade": "2학년 2학기", "unit": "5급 바른 말로 이야기 나누어요"}, {"text": "생김새가 조금 다릅니다.", "grade": "2학년 2학기", "unit": "5급 바른 말로 이야기 나누어요"}, {"text": "감자밭으로 갔습니다.", "grade": "2학년 2학기", "unit": "5급 바른 말로 이야기 나누어요"}, {"text": "냄새가 솔솔 풍겼습니다.", "grade": "2학년 2학기", "unit": "5급 바른 말로 이야기 나누어요"}, {"text": "어깨춤을 추었습니다.", "grade": "2학년 2학기", "unit": "5급 바른 말로 이야기 나누어요"}, {"text": "들꽃 씨앗을 뿌렸습니다.", "grade": "2학년 2학기", "unit": "5급 바른 말로 이야기 나누어요"}, {"text": "코를 갖다 대었습니다.", "grade": "2학년 2학기", "unit": "5급 바른 말로 이야기 나누어요"}, {"text": "코스모스가 만발했다.", "grade": "2학년 2학기", "unit": "5급 바른 말로 이야기 나누어요"}, {"text": "상상할 수 있어서 좋아.", "grade": "2학년 2학기", "unit": "6급 매체를 경험해요"}, {"text": "더 생생하게 느껴져.", "grade": "2학년 2학기", "unit": "6급 매체를 경험해요"}, {"text": "저 풀은 이름이 뭐예요?", "grade": "2학년 2학기", "unit": "6급 매체를 경험해요"}, {"text": "땅속에 묻혀 있습니다.", "grade": "2학년 2학기", "unit": "6급 매체를 경험해요"}, {"text": "내려가는 건 정말 쉬워요.", "grade": "2학년 2학기", "unit": "6급 매체를 경험해요"}, {"text": "아침 식사 시간이에요.", "grade": "2학년 2학기", "unit": "6급 매체를 경험해요"}, {"text": "남기지 않고 다 먹었어요.", "grade": "2학년 2학기", "unit": "6급 매체를 경험해요"}, {"text": "싱크대에 몰래 부어요.", "grade": "2학년 2학기", "unit": "6급 매체를 경험해요"}, {"text": "설마 다 꿈이었나?", "grade": "2학년 2학기", "unit": "6급 매체를 경험해요"}, {"text": "내가 막아야겠어!", "grade": "2학년 2학기", "unit": "6급 매체를 경험해요"}, {"text": "에티켓이 있다.", "grade": "2학년 2학기", "unit": "7급 내 생각은 이래요"}, {"text": "목줄을 채워야 한다.", "grade": "2학년 2학기", "unit": "7급 내 생각은 이래요"}, {"text": "상쾌해지는 것을 느껴요.", "grade": "2학년 2학기", "unit": "7급 내 생각은 이래요"}, {"text": "점점 체력이 좋아져요.", "grade": "2학년 2학기", "unit": "7급 내 생각은 이래요"}, {"text": "고구마 심어도 돼요?", "grade": "2학년 2학기", "unit": "7급 내 생각은 이래요"}, {"text": "식물도 생명이에요.", "grade": "2학년 2학기", "unit": "7급 내 생각은 이래요"}, {"text": "달걀 먹을 수 있잖아요.", "grade": "2학년 2학기", "unit": "7급 내 생각은 이래요"}, {"text": "밝게 만들어 줄 거예요.", "grade": "2학년 2학기", "unit": "7급 내 생각은 이래요"}, {"text": "교실 문을 닫고 다니자.", "grade": "2학년 2학기", "unit": "7급 내 생각은 이래요"}, {"text": "지금 다섯 시야.", "grade": "2학년 2학기", "unit": "7급 내 생각은 이래요"}, {"text": "허겁지겁 달려갔습니다.", "grade": "2학년 2학기", "unit": "8급 나도 작가"}, {"text": "가슴이 두근거렸습니다.", "grade": "2학년 2학기", "unit": "8급 나도 작가"}, {"text": "마음이 놓였습니다.", "grade": "2학년 2학기", "unit": "8급 나도 작가"}, {"text": "문을 꼭 닫았습니다.", "grade": "2학년 2학기", "unit": "8급 나도 작가"}, {"text": "칭얼대기 시작했습니다.", "grade": "2학년 2학기", "unit": "8급 나도 작가"}, {"text": "언제부터가 어른인 걸까?", "grade": "2학년 2학기", "unit": "8급 나도 작가"}, {"text": "미지는 어른이 됐다.", "grade": "2학년 2학기", "unit": "8급 나도 작가"}, {"text": "저한테 온 택배예요?", "grade": "2학년 2학기", "unit": "8급 나도 작가"}, {"text": "최고 속도로 달립니다.", "grade": "2학년 2학기", "unit": "8급 나도 작가"}, {"text": "다시 한번 읽어 보았다.", "grade": "2학년 2학기", "unit": "8급 나도 작가"}, {"text": "승호는 책을 읽는 자세가 바릅니다.", "grade": "교과서 예시문장", "unit": "예시문장 (1학년 1학기)"}, {"text": "선생님께서 재미있는 책을 읽어 주셨습니다.", "grade": "교과서 예시문장", "unit": "예시문장 (1학년 1학기)"}, {"text": "연필을 바르게 잡고 글씨를 씁니다.", "grade": "교과서 예시문장", "unit": "예시문장 (1학년 1학기)"}, {"text": "눈사람은 숫자 8과 모양이 비슷합니다.", "grade": "교과서 예시문장", "unit": "예시문장 (1학년 1학기)"}, {"text": "나는 '사랑'이라는 낱말을 가장 좋아합니다.", "grade": "교과서 예시문장", "unit": "예시문장 (1학년 1학기)"}, {"text": "학교에서 담임 선생님을 만났습니다.", "grade": "교과서 예시문장", "unit": "예시문장 (1학년 1학기)"}, {"text": "학교 가는 길에 선생님을 만나 밝은 표정으로 인사를 했습니다.", "grade": "교과서 예시문장", "unit": "예시문장 (1학년 1학기)"}, {"text": "때에 알맞은 인사말을 해서 칭찬을 들었습니다.", "grade": "교과서 예시문장", "unit": "예시문장 (1학년 1학기)"}, {"text": "서윤이와 나는 서로 좋아하는 공룡 이야기를 나누며 친해졌습니다.", "grade": "교과서 예시문장", "unit": "예시문장 (1학년 1학기)"}, {"text": "나비는 곤충에 속합니다.", "grade": "교과서 예시문장", "unit": "예시문장 (1학년 1학기)"}, {"text": "책에 그림이 많아서 내용을 이해하기 쉽습니다.", "grade": "교과서 예시문장", "unit": "예시문장 (1학년 1학기)"}, {"text": "미술 대회에 낼 그림을 드디어 완성하였습니다.", "grade": "교과서 예시문장", "unit": "예시문장 (1학년 1학기)"}, {"text": "동환이는 나뭇잎이 바람에 흔들리는 모습을 잘 표현하였습니다.", "grade": "교과서 예시문장", "unit": "예시문장 (1학년 1학기)"}, {"text": "고운 말로 인사하면 상대에게 좋은 인상을 줄 수 있습니다.", "grade": "교과서 예시문장", "unit": "예시문장 (1학년 2학기)"}, {"text": "동물의 울음소리를 똑같이 흉내 내 봅니다.", "grade": "교과서 예시문장", "unit": "예시문장 (1학년 2학기)"}, {"text": "책을 읽고 이전에는 몰랐던 것들을 알게 되었습니다.", "grade": "교과서 예시문장", "unit": "예시문장 (1학년 2학기)"}, {"text": "발표를 할 때에는 항상 자신 있는 표정과 큰 목소리로 말해야 합니다.", "grade": "교과서 예시문장", "unit": "예시문장 (1학년 2학기)"}, {"text": "고운 말은 듣는 사람을 기분 좋게 해 줍니다.", "grade": "교과서 예시문장", "unit": "예시문장 (1학년 2학기)"}, {"text": "현수는 자신이 화분을 깼다고 솔직하게 말했습니다.", "grade": "교과서 예시문장", "unit": "예시문장 (1학년 2학기)"}, {"text": "나는 그림일기에 자전거를 타는 장면을 그렸습니다.", "grade": "교과서 예시문장", "unit": "예시문장 (1학년 2학기)"}, {"text": "우리 반은 요일마다 학급 회장을 바꾸어 맡습니다.", "grade": "교과서 예시문장", "unit": "예시문장 (1학년 2학기)"}, {"text": "나는 어제 영화를 보고 큰 감동을 받았습니다.", "grade": "교과서 예시문장", "unit": "예시문장 (1학년 2학기)"}, {"text": "우리는 책을 읽고 일이 일어난 순서를 정리해 보았습니다.", "grade": "교과서 예시문장", "unit": "예시문장 (1학년 2학기)"}, {"text": "한글이 있어 우리는 자신의 생각을 자유롭게 글로 표현할 수 있습니다.", "grade": "교과서 예시문장", "unit": "예시문장 (1학년 2학기)"}, {"text": "더 쓸 수 있는 종이를 버리는 친구가 많다는 문제가 있습니다.", "grade": "교과서 예시문장", "unit": "예시문장 (1학년 2학기)"}, {"text": "종이를 뒤집어서 한 번 더 씀으로써 종이를 낭비하는 문제를 해결할 수 있습니다.", "grade": "교과서 예시문장", "unit": "예시문장 (1학년 2학기)"}, {"text": "겪은 일을 쓸 때에는 언제, 어디에서 있었던 일을 쓸 것인지 떠올려 봅니다.", "grade": "교과서 예시문장", "unit": "예시문장 (1학년 2학기)"}, {"text": "진경이는 시원이가 누구를 설명하고 있는지 알 수 있었습니다.", "grade": "교과서 예시문장", "unit": "예시문장 (1학년 2학기)"}, {"text": "글에서 설명하는 대상을 파악하기 위해서는 글의 제목을 참고할 수도 있습니다.", "grade": "교과서 예시문장", "unit": "예시문장 (1학년 2학기)"}, {"text": "주희는 책장을 넘기며 글의 내용을 훑어보았습니다.", "grade": "교과서 예시문장", "unit": "예시문장 (1학년 2학기)"}, {"text": "민지는 이야기를 읽으며 아름다운 인물의 모습을 상상해 보았습니다.", "grade": "교과서 예시문장", "unit": "예시문장 (1학년 2학기)"}, {"text": "이야기 속에는 다양한 인물이 등장합니다.", "grade": "교과서 예시문장", "unit": "예시문장 (1학년 2학기)"}]}]};
+const CATS = DATA.categories;
+const GROUP = 3;
+const PKEY = 'badasseugi_progress_v2';
+
+let curCat=null, curDay=0, mode='pen', slow=true;
+let prog = loadProg();
+function loadProg(){ try{return JSON.parse(localStorage.getItem(PKEY))||{};}catch(e){return {};} }
+function saveProg(){ try{localStorage.setItem(PKEY, JSON.stringify(prog));}catch(e){} }
+function pk(i){ return curCat.id+':'+i; }
+
+function catDays(cat){ return Math.ceil(cat.items.length/GROUP); }
+function dayRange(day){ const s=day*GROUP; return [s, Math.min(s+GROUP, curCat.items.length)]; }
+function dayStat(day){ const [s,e]=dayRange(day); let o=0,x=0,m=0; for(let i=s;i<e;i++){ const v=prog[curCat.id+':'+i]; if(v==='o'){o++;m++;} else if(v==='x'){x++;m++;} } return {o,x,m,total:e-s}; }
+function catProgress(cat){ let done=0,o=0; const days=Math.ceil(cat.items.length/GROUP);
+  for(let d=0;d<days;d++){ const s=d*GROUP,e=Math.min(s+GROUP,cat.items.length); let m=0; for(let i=s;i<e;i++){ const v=prog[cat.id+':'+i]; if(v){m++; if(v==='o')o++;} } if(m===e-s)done++; }
+  return {doneDays:done, days, o}; }
+
+/* ---------- 음성 ---------- */
+let koVoice=null, warmed=false;
+function pickVoice(){ const vs=window.speechSynthesis?speechSynthesis.getVoices():[]; koVoice=vs.find(v=>v.lang==='ko-KR')||vs.find(v=>v.lang&&v.lang.toLowerCase().startsWith('ko'))||null; }
+if('speechSynthesis' in window){ pickVoice(); speechSynthesis.onvoiceschanged=pickVoice; }
+function warmup(){ if(warmed||!('speechSynthesis' in window))return; warmed=true; try{const u=new SpeechSynthesisUtterance(' ');u.volume=0;speechSynthesis.speak(u);}catch(e){} }
+document.addEventListener('pointerdown', warmup, {once:true});
+document.addEventListener('click', warmup, {once:true});
+function makeUtter(text){ const u=new SpeechSynthesisUtterance(text); u.lang='ko-KR'; if(koVoice)u.voice=koVoice; u.rate=slow?0.72:0.86; u.pitch=1.0; return u; }
+function speak(text){
+  if(!('speechSynthesis' in window)){ alert('이 기기는 소리 읽어주기를 지원하지 않아요.\n크롬이나 엣지로 열어 주세요.'); return; }
+  const synth=window.speechSynthesis; if(!koVoice) pickVoice();
+  if(synth.speaking||synth.pending){ try{synth.cancel();}catch(e){} setTimeout(()=>{try{synth.resume();}catch(e){} synth.speak(makeUtter(text));},60); }
+  else { try{synth.resume();}catch(e){} synth.speak(makeUtter(text)); }
+}
+
+/* ---------- 화면 전환 ---------- */
+function show(id){ ['home','daylist','practice'].forEach(s=>document.getElementById(s).classList.add('hide')); document.getElementById(id).classList.remove('hide'); window.scrollTo(0,0); }
+function goHome(){ if(window.speechSynthesis)speechSynthesis.cancel(); buildHome(); show('home'); }
+
+/* ---------- 홈: 낱말/문장 ---------- */
+function buildHome(){
+  const g=document.getElementById('catCards'); g.innerHTML='';
+  CATS.forEach(cat=>{
+    const p=catProgress(cat);
+    const c=document.createElement('div'); c.className='bigcard'; c.onclick=()=>openCat(cat.id);
+    c.innerHTML=`<div class="em">${cat.emoji}</div><div class="nm">${cat.name}</div><div class="ds">${cat.desc} · ${cat.items.length}문제</div><div class="pg">완료 ${p.doneDays} / ${p.days}일</div>`;
+    g.appendChild(c);
+  });
+  const tot=CATS.reduce((a,c)=>a+c.items.length,0);
+  document.getElementById('subInfo').innerHTML='낱말 '+CATS[0].items.length+' · 문장 '+CATS[1].items.length+'<br>전체 '+tot+'문제';
+}
+
+/* ---------- 일차 목록 ---------- */
+function openCat(id){ curCat=CATS.find(c=>c.id===id); buildDaylist(); show('daylist'); }
+function backToDays(){ if(window.speechSynthesis)speechSynthesis.cancel(); buildDaylist(); show('daylist'); }
+function buildDaylist(){
+  document.getElementById('catTitle').textContent = curCat.emoji+' '+curCat.name;
+  const days=catDays(curCat);
+  let doneDays=0, totalO=0;
+  for(let d=0;d<days;d++){ const st=dayStat(d); if(st.m===st.total)doneDays++; totalO+=st.o; }
+  document.getElementById('sumBig').textContent=`완료 ${doneDays}일 / 전체 ${days}일`;
+  document.getElementById('sumMuted').textContent=`맞힌 문제 ${totalO}개 · ${curCat.items.length}문제 · 하루 3문제`;
+  let first=0; while(first<days && dayStat(first).m===dayStat(first).total) first++;
+  if(first>=days) first=0;
+  const cb=document.getElementById('contBtn'); cb.textContent=(doneDays===0?'▶ 시작하기':'▶ 이어서 하기')+` (${first+1}일차)`; cb.onclick=()=>openDay(first);
+  const g=document.getElementById('dayGrid'); g.innerHTML='';
+  for(let d=0;d<days;d++){ const st=dayStat(d), done=st.m===st.total;
+    const c=document.createElement('div'); c.className='daycard'+(done?' done':'');
+    const stat = st.m===0?'아직 안 함':(done?`완료 · ⭕${st.o} ✗${st.x}`:`${st.m}/${st.total} 진행`);
+    c.innerHTML=`<div class="dn">${d+1}일차</div><div class="st">${stat}</div>`+(done?'<div class="badge">✅</div>':'');
+    c.onclick=()=>openDay(d); g.appendChild(c);
+  }
+}
+
+/* ---------- 연습 ---------- */
+function openDay(d){ curDay=d; renderDay(); show('practice'); }
+function renderDay(){
+  const days=catDays(curCat), [s,e]=dayRange(curDay);
+  document.getElementById('pDay').textContent=curCat.name+' · '+(curDay+1)+'일차 (오늘의 3문제)';
+  const ql=document.getElementById('qlist'); ql.innerHTML='';
+  for(let i=s;i<e;i++){ ql.appendChild(makeCard(i,i-s+1)); }
+  document.getElementById('prevBtn').disabled=curDay===0;
+  document.getElementById('nextBtn').disabled=curDay>=days-1;
+  document.getElementById('doneTip').textContent='전체 '+days+'일 중 '+(curDay+1)+'일차예요.';
+  applyMode();
+}
+function prevDay(){ if(curDay>0){curDay--; if(window.speechSynthesis)speechSynthesis.cancel(); renderDay(); window.scrollTo(0,0);} }
+function nextDay(){ if(curDay<catDays(curCat)-1){curDay++; if(window.speechSynthesis)speechSynthesis.cancel(); renderDay(); window.scrollTo(0,0);} }
+
+function makeCard(idx, no){
+  const item=curCat.items[idx]; const key=pk(idx);
+  const card=document.createElement('div'); card.className='qcard'; card.dataset.idx=idx; card.dataset.text=item.text;
+  if(prog[key]==='o')card.classList.add('mo'); if(prog[key]==='x')card.classList.add('mx');
+  const meta=document.createElement('div'); meta.className='qmeta'; meta.textContent=item.grade+'\n'+item.unit; meta.style.whiteSpace='pre-line'; card.appendChild(meta);
+  const top=document.createElement('div'); top.className='qtop';
+  const qn=document.createElement('div'); qn.className='qnum'; qn.textContent=no; top.appendChild(qn);
+  const lb=document.createElement('button'); lb.className='listenbtn'; lb.innerHTML='🔊 듣기'; lb.addEventListener('click',()=>speak(item.text)); top.appendChild(lb);
+  card.appendChild(top);
+  const ab=document.createElement('div'); ab.className='answerbox';
+  const penbox=document.createElement('div'); penbox.className='penbox';
+  penbox.innerHTML='<p class="penhint">✏️ 펜(연필)으로 한 칸에 한 글자씩 써 보세요</p>';
+  const wongo=document.createElement('div'); wongo.className='wongo'; wongo.dataset.text=item.text; penbox.appendChild(wongo); ab.appendChild(penbox);
+  const kbbox=document.createElement('div'); kbbox.className='kbbox hide';
+  const inp=document.createElement('input'); inp.className='kbinput'; inp.type='text'; inp.placeholder='여기에 써 보세요'; inp.autocomplete='off'; inp.spellcheck=false;
+  const kbmark=document.createElement('div'); kbmark.className='kbmark';
+  inp.addEventListener('input',()=>{ const v=inp.value.trim();
+    if(v===''){kbmark.textContent='';return;}
+    if(norm(v)===norm(item.text)){kbmark.textContent='⭕ 참 잘했어요! (자동 채점: 맞음)';kbmark.style.color='#1f7a44';setMark(idx,'o',card);}
+    else{kbmark.textContent='✏️ 아직 달라요. 다시 써 볼까요?';kbmark.style.color='#c9702f';}
+  });
+  kbbox.appendChild(inp); kbbox.appendChild(kbmark); ab.appendChild(kbbox); card.appendChild(ab);
+  const rvBtn=document.createElement('button'); rvBtn.className='revealbtn'; rvBtn.textContent='👀 정답보기';
+  const rv=document.createElement('div'); rv.className='reveal'; rv.innerHTML='<span class="tag">정답</span>'+escHtml(item.text);
+  rvBtn.addEventListener('click',()=>{ const on=rv.classList.toggle('show'); rvBtn.textContent=on?'🙈 정답 숨기기':'👀 정답보기'; });
+  card.appendChild(rvBtn); card.appendChild(rv);
+  const mr=document.createElement('div'); mr.className='markrow';
+  const ml=document.createElement('span'); ml.className='ml'; ml.textContent='채점:';
+  const bo=document.createElement('button'); bo.className='markbtn o'; bo.textContent='⭕ 맞았어요';
+  const bx=document.createElement('button'); bx.className='markbtn x'; bx.textContent='✗ 틀렸어요';
+  if(prog[key]==='o')bo.classList.add('on'); if(prog[key]==='x')bx.classList.add('on');
+  bo.addEventListener('click',()=>toggleMark(idx,'o',card,bo,bx));
+  bx.addEventListener('click',()=>toggleMark(idx,'x',card,bo,bx));
+  mr.appendChild(ml); mr.appendChild(bo); mr.appendChild(bx); card.appendChild(mr);
+  return card;
+}
+function setMark(idx,v,card){ prog[pk(idx)]=v; saveProg(); card.classList.toggle('mo',v==='o'); card.classList.toggle('mx',v==='x');
+  const bo=card.querySelector('.markbtn.o'),bx=card.querySelector('.markbtn.x'); if(bo)bo.classList.toggle('on',v==='o'); if(bx)bx.classList.toggle('on',v==='x'); }
+function toggleMark(idx,v,card,bo,bx){ if(prog[pk(idx)]===v){ delete prog[pk(idx)]; saveProg(); card.classList.remove('mo','mx'); bo.classList.remove('on'); bx.classList.remove('on'); } else setMark(idx,v,card); }
+
+/* ---------- 입력 방법 ---------- */
+function setMode(m){ mode=m; document.getElementById('mPen').classList.toggle('on',m==='pen'); document.getElementById('mKb').classList.toggle('on',m==='kb'); applyMode(); }
+function applyMode(){ document.querySelectorAll('#qlist .penbox').forEach(e=>e.classList.toggle('hide',mode!=='pen')); document.querySelectorAll('#qlist .kbbox').forEach(e=>e.classList.toggle('hide',mode!=='kb'));
+  if(mode==='pen') requestAnimationFrame(()=>document.querySelectorAll('#qlist .wongo').forEach(buildWongo)); }
+function toggleSlow(){ slow=!slow; document.getElementById('slowBtn').classList.toggle('on',slow); }
+
+/* ---------- 원고지(펜) ---------- */
+const COLS=10;
+function buildWongo(wongo){
+  if(wongo.dataset.built)return;
+  const text=wongo.dataset.text||''; const len=Array.from(text).length;
+  const isWord = text.indexOf(' ')===-1;              // 낱말이면 1줄
+  const rows = isWord?1:Math.max(2,Math.ceil(len/COLS));
+  const grid=document.createElement('div'); grid.className='wgrid'; grid.style.gridTemplateColumns=`repeat(${COLS},1fr)`;
+  for(let i=0;i<rows*COLS;i++){ const c=document.createElement('div'); c.className='wcell'; grid.appendChild(c); }
+  wongo.innerHTML=''; wongo.appendChild(grid);
+  const cv=document.createElement('canvas'); cv.className='wcanvas'; wongo.appendChild(cv);
+  const btn=document.createElement('button'); btn.className='clearpen'; btn.textContent='지우기'; btn.addEventListener('click',()=>{const ctx=cv.getContext('2d');ctx.clearRect(0,0,cv.width,cv.height);});
+  wongo.appendChild(btn); wongo.dataset.built='1';
+  requestAnimationFrame(()=>sizeCanvas(cv,grid));
+}
+function sizeCanvas(cv,grid){
+  const r=grid.getBoundingClientRect(); if(r.width<5){requestAnimationFrame(()=>sizeCanvas(cv,grid));return;}
+  const dpr=window.devicePixelRatio||1; cv.style.width=r.width+'px'; cv.style.height=r.height+'px'; cv.width=r.width*dpr; cv.height=r.height*dpr;
+  const ctx=cv.getContext('2d'); ctx.scale(dpr,dpr); ctx.lineWidth=3; ctx.lineCap='round'; ctx.lineJoin='round'; ctx.strokeStyle='#20364a';
+  let drawing=false; const pos=e=>{const b=cv.getBoundingClientRect(); const t=e.touches?e.touches[0]:e; return [t.clientX-b.left,t.clientY-b.top];};
+  cv.onpointerdown=e=>{drawing=true;const[x,y]=pos(e);ctx.beginPath();ctx.moveTo(x,y);cv.setPointerCapture(e.pointerId);e.preventDefault();};
+  cv.onpointermove=e=>{if(!drawing)return;const[x,y]=pos(e);ctx.lineTo(x,y);ctx.stroke();e.preventDefault();};
+  cv.onpointerup=cv.onpointercancel=()=>{drawing=false;};
+}
+
+/* ---------- 유틸 ---------- */
+function norm(s){ return (s||'').replace(/[\s.,!?'"·]/g,''); }
+function escHtml(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+let rzT=null;
+window.addEventListener('resize',()=>{ clearTimeout(rzT); rzT=setTimeout(()=>{ if(mode==='pen') document.querySelectorAll('#qlist .wongo').forEach(w=>{w.dataset.built='';buildWongo(w);}); },250); });
+
+buildHome();
+</script>
+</body>
+</html>
