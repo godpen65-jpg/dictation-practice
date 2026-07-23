@@ -158,7 +158,7 @@ const CATS = DATA.categories;
 const GROUP = 3;
 const PKEY = 'badasseugi_progress_v2';
 
-let curCat=null, curDay=0, mode='pen', slow=true;
+let curCat=null, curDay=0, mode='pen', slow=true, penSeen=false;
 let prog = loadProg();
 function loadProg(){ try{return JSON.parse(localStorage.getItem(PKEY))||{};}catch(e){return {};} }
 function saveProg(){ try{localStorage.setItem(PKEY, JSON.stringify(prog));}catch(e){} }
@@ -251,7 +251,7 @@ function makeCard(idx, no){
   card.appendChild(top);
   const ab=document.createElement('div'); ab.className='answerbox';
   const penbox=document.createElement('div'); penbox.className='penbox';
-  penbox.innerHTML='<p class="penhint">✏️ 펜(연필)으로 한 칸에 한 글자씩 써 보세요</p>';
+  penbox.innerHTML='<p class="penhint">✏️ 펜으로 한 칸에 한 글자씩 써 보세요 (손 대고 써도 펜만 인식돼요)</p>';
   const wongo=document.createElement('div'); wongo.className='wongo'; wongo.dataset.text=item.text; penbox.appendChild(wongo); ab.appendChild(penbox);
   const kbbox=document.createElement('div'); kbbox.className='kbbox hide';
   const inp=document.createElement('input'); inp.className='kbinput'; inp.type='text'; inp.placeholder='여기에 써 보세요'; inp.autocomplete='off'; inp.spellcheck=false;
@@ -305,10 +305,25 @@ function sizeCanvas(cv,grid){
   const r=grid.getBoundingClientRect(); if(r.width<5){requestAnimationFrame(()=>sizeCanvas(cv,grid));return;}
   const dpr=window.devicePixelRatio||1; cv.style.width=r.width+'px'; cv.style.height=r.height+'px'; cv.width=r.width*dpr; cv.height=r.height*dpr;
   const ctx=cv.getContext('2d'); ctx.scale(dpr,dpr); ctx.lineWidth=3; ctx.lineCap='round'; ctx.lineJoin='round'; ctx.strokeStyle='#20364a';
-  let drawing=false; const pos=e=>{const b=cv.getBoundingClientRect(); const t=e.touches?e.touches[0]:e; return [t.clientX-b.left,t.clientY-b.top];};
-  cv.onpointerdown=e=>{drawing=true;const[x,y]=pos(e);ctx.beginPath();ctx.moveTo(x,y);cv.setPointerCapture(e.pointerId);e.preventDefault();};
-  cv.onpointermove=e=>{if(!drawing)return;const[x,y]=pos(e);ctx.lineTo(x,y);ctx.stroke();e.preventDefault();};
-  cv.onpointerup=cv.onpointercancel=()=>{drawing=false;};
+  let activeId=null;
+  const pos=e=>{const b=cv.getBoundingClientRect(); return [e.clientX-b.left, e.clientY-b.top];};
+  // 팜리젝션: 펜을 한 번이라도 쓰면 그 뒤 손가락/손바닥(touch)은 무시
+  const allow=e=>{ if(e.pointerType==='pen'){penSeen=true;return true;} if(e.pointerType==='mouse')return true; return !penSeen; };
+  cv.addEventListener('pointerdown',e=>{
+    if(e.pointerType==='pen') penSeen=true;
+    if(activeId!==null && e.pointerType==='touch'){ e.preventDefault(); return; } // 그리는 중 손바닥 무시
+    if(!allow(e)){ e.preventDefault(); return; }
+    activeId=e.pointerId; const[x,y]=pos(e); ctx.beginPath(); ctx.moveTo(x,y);
+    try{cv.setPointerCapture(e.pointerId);}catch(_){}
+    e.preventDefault();
+  });
+  cv.addEventListener('pointermove',e=>{
+    if(e.pointerType==='pen') penSeen=true;
+    if(e.pointerId!==activeId) return;
+    const[x,y]=pos(e); ctx.lineTo(x,y); ctx.stroke(); e.preventDefault();
+  });
+  const end=e=>{ if(e.pointerId===activeId) activeId=null; };
+  cv.addEventListener('pointerup',end); cv.addEventListener('pointercancel',end); cv.addEventListener('pointerleave',end);
 }
 
 /* ---------- 유틸 ---------- */
