@@ -6,7 +6,9 @@
 <title>받아쓰기 연습장</title>
 <style>
   :root{--blue:#38a1f0;--blue1:#4aa8f0;--blue2:#1e88e5;--ink:#20364a;--line:#bfe0fb;--ok:#2e9b57;--no:#e2673b;}
-  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;}
+  input,textarea{-webkit-user-select:text;user-select:text;}
+  .wongo,.wcanvas,.penbox{touch-action:none;}
   html,body{margin:0;padding:0;}
   body{font-family:"Malgun Gothic","맑은 고딕",system-ui,sans-serif;background:linear-gradient(#eaf6ff,#f7fbff);color:var(--ink);min-height:100vh;-webkit-text-size-adjust:100%;}
   .wrap{max-width:900px;margin:0 auto;padding:16px 14px 60px;}
@@ -158,7 +160,7 @@ const CATS = DATA.categories;
 const GROUP = 3;
 const PKEY = 'badasseugi_progress_v2';
 
-let curCat=null, curDay=0, mode='pen', slow=true, penSeen=false;
+let curCat=null, curDay=0, mode='pen', slow=true, penDownG=false, lastPenT=0;
 let prog = loadProg();
 function loadProg(){ try{return JSON.parse(localStorage.getItem(PKEY))||{};}catch(e){return {};} }
 function saveProg(){ try{localStorage.setItem(PKEY, JSON.stringify(prog));}catch(e){} }
@@ -304,25 +306,24 @@ function buildWongo(wongo){
 function sizeCanvas(cv,grid){
   const r=grid.getBoundingClientRect(); if(r.width<5){requestAnimationFrame(()=>sizeCanvas(cv,grid));return;}
   const dpr=window.devicePixelRatio||1; cv.style.width=r.width+'px'; cv.style.height=r.height+'px'; cv.width=r.width*dpr; cv.height=r.height*dpr;
-  const ctx=cv.getContext('2d'); ctx.scale(dpr,dpr); ctx.lineWidth=3; ctx.lineCap='round'; ctx.lineJoin='round'; ctx.strokeStyle='#20364a';
+  const ctx=cv.getContext('2d'); ctx.scale(dpr,dpr); ctx.lineWidth=3.2; ctx.lineCap='round'; ctx.lineJoin='round'; ctx.strokeStyle='#20364a';
   let activeId=null;
   const pos=e=>{const b=cv.getBoundingClientRect(); return [e.clientX-b.left, e.clientY-b.top];};
-  // 팜리젝션: 펜을 한 번이라도 쓰면 그 뒤 손가락/손바닥(touch)은 무시
-  const allow=e=>{ if(e.pointerType==='pen'){penSeen=true;return true;} if(e.pointerType==='mouse')return true; return !penSeen; };
+  // 팜리젝션: 펜이 닿아있거나 직전(0.4초)엔 손(터치) 무시. 펜 안 쓰면 손가락 필기 허용.
+  const touchOK=()=> !penDownG && (performance.now()-lastPenT>400);
   cv.addEventListener('pointerdown',e=>{
-    if(e.pointerType==='pen') penSeen=true;
-    if(activeId!==null && e.pointerType==='touch'){ e.preventDefault(); return; } // 그리는 중 손바닥 무시
-    if(!allow(e)){ e.preventDefault(); return; }
+    if(e.pointerType==='pen'){ penDownG=true; lastPenT=performance.now(); }
+    else if(e.pointerType==='touch' && !touchOK()){ e.preventDefault(); return; }
     activeId=e.pointerId; const[x,y]=pos(e); ctx.beginPath(); ctx.moveTo(x,y);
     try{cv.setPointerCapture(e.pointerId);}catch(_){}
     e.preventDefault();
-  });
+  },{passive:false});
   cv.addEventListener('pointermove',e=>{
-    if(e.pointerType==='pen') penSeen=true;
+    if(e.pointerType==='pen') lastPenT=performance.now();
     if(e.pointerId!==activeId) return;
     const[x,y]=pos(e); ctx.lineTo(x,y); ctx.stroke(); e.preventDefault();
-  });
-  const end=e=>{ if(e.pointerId===activeId) activeId=null; };
+  },{passive:false});
+  const end=e=>{ if(e.pointerType==='pen'){ penDownG=false; lastPenT=performance.now(); } if(e.pointerId===activeId) activeId=null; };
   cv.addEventListener('pointerup',end); cv.addEventListener('pointercancel',end); cv.addEventListener('pointerleave',end);
 }
 
