@@ -318,15 +318,18 @@ function sizeCanvas(cv,grid){
     for(const ev of evs){ const[x,y]=pos(ev); ctx.beginPath(); ctx.moveTo(lx,ly); ctx.lineTo(x,y); ctx.stroke(); lx=x; ly=y; }
     e.preventDefault();
   };
-  const wend=e=>{
-    if(!drawing || e.pointerType!==curType) return;   // 다른 종류(손바닥) up은 무시
-    drawing=false; curType=null; if(e.pointerType==='pen') penDownG=false;
+  function cleanup(){ drawing=false; curType=null;
     window.removeEventListener('pointermove',wmove,{passive:false});
-    window.removeEventListener('pointerup',wend,true); window.removeEventListener('pointercancel',wend,true);
-  };
+    window.removeEventListener('pointerup',wend,true); window.removeEventListener('pointercancel',wend,true); }
+  function wend(e){
+    if(!drawing) return;
+    if(e && e.pointerType && e.pointerType!==curType) return;   // 다른 종류(손바닥) up은 무시
+    if(!e || e.pointerType==='pen') penDownG=false;
+    cleanup();
+  }
   cv.addEventListener('pointerdown',e=>{
     if(e.pointerType==='touch' && penDownG){ e.preventDefault(); return; } // 펜 쓰는 중 손바닥 무시
-    if(drawing){ e.preventDefault(); return; }                            // 이미 그리는 중이면 두번째 포인터 무시
+    if(drawing) cleanup();                                                 // 이전 획 잔여 정리(펜 대면 항상 새 획!)
     if(e.pointerType==='pen') penDownG=true;
     drawing=true; curType=e.pointerType;
     const[x,y]=pos(e); lx=x; ly=y;
