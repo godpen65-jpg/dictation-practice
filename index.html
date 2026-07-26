@@ -143,6 +143,7 @@
           <button id="mKb" onclick="setMode('kb')">⌨️ 키보드</button>
         </div>
         <button class="speedbtn on" id="slowBtn" onclick="toggleSlow()">🐢 천천히</button>
+        <button class="speedbtn" id="eraseBtn" onclick="toggleErase()">🧽 지우개</button>
       </div>
     </div>
     <div id="qlist"></div>
@@ -154,7 +155,7 @@
     <p class="tip" id="doneTip"></p>
   </section>
 
-  <div class="footer">엄마가 만든 받아쓰기 연습장 · 아이와 함께 매일매일 😊<br><span style="opacity:.7">버전 0726-1806</span></div>
+  <div class="footer">엄마가 만든 받아쓰기 연습장 · 아이와 함께 매일매일 😊<br><span style="opacity:.7">버전 0726-1814</span></div>
 </div>
 
 <script>
@@ -163,7 +164,7 @@ const CATS = DATA.categories;
 const GROUP = 3;
 const PKEY = 'badasseugi_progress_v2';
 
-let curCat=null, curDay=0, mode='pen', slow=true, penDownG=false, lastPenT=0, stylusSeen=false;
+let curCat=null, curDay=0, mode='pen', slow=true, penDownG=false, lastPenT=0, stylusSeen=false, eraseMode=false;
 let prog = loadProg();
 function loadProg(){ try{return JSON.parse(localStorage.getItem(PKEY))||{};}catch(e){return {};} }
 function saveProg(){ try{localStorage.setItem(PKEY, JSON.stringify(prog));}catch(e){} }
@@ -288,8 +289,10 @@ function toggleMark(idx,v,card,bo,bx){ if(prog[pk(idx)]===v){ delete prog[pk(idx
 /* ---------- 입력 방법 ---------- */
 function setMode(m){ mode=m; document.getElementById('mPen').classList.toggle('on',m==='pen'); document.getElementById('mKb').classList.toggle('on',m==='kb'); applyMode(); }
 function applyMode(){ document.querySelectorAll('#qlist .penbox').forEach(e=>e.classList.toggle('hide',mode!=='pen')); document.querySelectorAll('#qlist .kbbox').forEach(e=>e.classList.toggle('hide',mode!=='kb'));
+  const eb=document.getElementById('eraseBtn'); if(eb) eb.style.display = (mode==='pen')?'':'none';
   if(mode==='pen') requestAnimationFrame(()=>document.querySelectorAll('#qlist .wongo').forEach(buildWongo)); }
 function toggleSlow(){ slow=!slow; document.getElementById('slowBtn').classList.toggle('on',slow); }
+function toggleErase(){ eraseMode=!eraseMode; const b=document.getElementById('eraseBtn'); b.classList.toggle('on',eraseMode); b.textContent = eraseMode?'🧽 지우개 ON':'🧽 지우개'; }
 
 /* ---------- 원고지(펜) ---------- */
 const COLS=10;
@@ -314,8 +317,9 @@ function sizeCanvas(cv,grid){
   cv._wired=true;
   let lx=0, ly=0, activeId=null;
   const P=(cx,cy)=>{const b=cv.getBoundingClientRect(); return [cx-b.left, cy-b.top];};
-  const lineTo=(x,y)=>{ ctx.beginPath(); ctx.moveTo(lx,ly); ctx.lineTo(x,y); ctx.stroke(); lx=x; ly=y; };
-  const dot=(x,y)=>{ ctx.beginPath(); ctx.arc(x,y,1.7,0,6.283); ctx.fillStyle='#20364a'; ctx.fill(); };
+  const setBrush=()=>{ if(eraseMode){ ctx.globalCompositeOperation='destination-out'; ctx.lineWidth=26; } else { ctx.globalCompositeOperation='source-over'; ctx.lineWidth=3.2; } };
+  const lineTo=(x,y)=>{ setBrush(); ctx.beginPath(); ctx.moveTo(lx,ly); ctx.lineTo(x,y); ctx.stroke(); lx=x; ly=y; };
+  const dot=(x,y)=>{ setBrush(); ctx.beginPath(); ctx.arc(x,y, eraseMode?13:1.7, 0,6.283); ctx.fillStyle='#20364a'; ctx.fill(); };
   const touchDev = ('ontouchstart' in window) || (navigator.maxTouchPoints>0);
   if(touchDev){
     // iOS/태블릿: 터치이벤트 + touchType으로 팜리젝션(펜 있으면 펜만, 없으면 손가락). 애플펜슬에 안정적.
