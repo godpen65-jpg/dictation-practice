@@ -154,7 +154,7 @@
     <p class="tip" id="doneTip"></p>
   </section>
 
-  <div class="footer">엄마가 만든 받아쓰기 연습장 · 아이와 함께 매일매일 😊<br><span style="opacity:.7">버전 0726-1754</span></div>
+  <div class="footer">엄마가 만든 받아쓰기 연습장 · 아이와 함께 매일매일 😊<br><span style="opacity:.7">버전 0726-1806</span></div>
 </div>
 
 <script>
@@ -163,7 +163,7 @@ const CATS = DATA.categories;
 const GROUP = 3;
 const PKEY = 'badasseugi_progress_v2';
 
-let curCat=null, curDay=0, mode='pen', slow=true, penDownG=false, lastPenT=0;
+let curCat=null, curDay=0, mode='pen', slow=true, penDownG=false, lastPenT=0, stylusSeen=false;
 let prog = loadProg();
 function loadProg(){ try{return JSON.parse(localStorage.getItem(PKEY))||{};}catch(e){return {};} }
 function saveProg(){ try{localStorage.setItem(PKEY, JSON.stringify(prog));}catch(e){} }
@@ -321,8 +321,12 @@ function sizeCanvas(cv,grid){
     // iOS/태블릿: 터치이벤트 + touchType으로 팜리젝션(펜 있으면 펜만, 없으면 손가락). 애플펜슬에 안정적.
     const hasStylus=list=>{ for(const t of list){ if(t.touchType==='stylus') return true; } return false; };
     cv.addEventListener('touchstart',e=>{
-      const stylus=hasStylus(e.touches); let t=null;
-      for(const ct of e.changedTouches){ if(stylus){ if(ct.touchType==='stylus'){ t=ct; break; } } else { t=ct; break; } }
+      if(hasStylus(e.changedTouches)) stylusSeen=true;
+      const stylusNow=hasStylus(e.touches); let t=null;
+      for(const ct of e.changedTouches){
+        if(ct.touchType==='stylus'){ t=ct; break; }
+        if(!stylusNow && !stylusSeen){ t=ct; break; }   // 손가락은 펜 쓴 적 없을 때만(펜 쓰면 손 완전 무시)
+      }
       if(!t){ e.preventDefault(); return; }
       activeId=t.identifier; const[x,y]=P(t.clientX,t.clientY); lx=x; ly=y; dot(x,y); e.preventDefault();
     },{passive:false});
