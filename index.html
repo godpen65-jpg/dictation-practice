@@ -155,7 +155,7 @@
     <p class="tip" id="doneTip"></p>
   </section>
 
-  <div class="footer">엄마가 만든 받아쓰기 연습장 · 아이와 함께 매일매일 😊<br><span style="opacity:.7">버전 0729-1132</span></div>
+  <div class="footer">엄마가 만든 받아쓰기 연습장 · 아이와 함께 매일매일 😊<br><span style="opacity:.7">버전 0729-1137</span></div>
 </div>
 
 <script>
@@ -258,7 +258,7 @@ function makeCard(idx, no){
   const ab=document.createElement('div'); ab.className='answerbox';
   const penbox=document.createElement('div'); penbox.className='penbox';
   penbox.innerHTML='<p class="penhint">✏️ 펜으로 한 칸에 한 글자씩 써 보세요 (손 대고 써도 펜만 인식돼요)</p>';
-  const wongo=document.createElement('div'); wongo.className='wongo'; wongo.dataset.text=item.text; penbox.appendChild(wongo); ab.appendChild(penbox);
+  const wongo=document.createElement('div'); wongo.className='wongo'; wongo.dataset.text=item.text; wongo.dataset.key=key; penbox.appendChild(wongo); ab.appendChild(penbox);
   const kbbox=document.createElement('div'); kbbox.className='kbbox hide';
   const inp=document.createElement('input'); inp.className='kbinput'; inp.type='text'; inp.placeholder='여기에 써 보세요'; inp.autocomplete='off'; inp.spellcheck=false;
   const kbmark=document.createElement('div'); kbmark.className='kbmark';
@@ -296,6 +296,56 @@ function toggleErase(){ eraseMode=!eraseMode; const b=document.getElementById('e
 
 /* ---------- 원고지(펜) ---------- */
 const COLS=10;
+
+/* ---------- 아이 필기 자동 저장 ---------- */
+const INKKEY='badasseugi_ink_v1';
+let inkStore=(function(){try{return JSON.parse(localStorage.getItem(INKKEY))||{};}catch(e){return {};}})();
+function inkFlush(){
+  try{ localStorage.setItem(INKKEY, JSON.stringify(inkStore)); }
+  catch(e){ // 저장 공간이 꽉 차면 오래된 것부터 30% 정리
+    const ks=Object.keys(inkStore); const n=Math.max(1,Math.ceil(ks.length*0.3));
+    for(let i=0;i<n;i++) delete inkStore[ks[i]];
+    try{ localStorage.setItem(INKKEY, JSON.stringify(inkStore)); }catch(_){}
+  }
+}
+function inkHasDrawing(cv){
+  try{ const d=cv.getContext('2d').getImageData(0,0,cv.width,cv.height).data;
+    for(let i=3;i<d.length;i+=4){ if(d[i]>0) return true; } }catch(e){}
+  return false;
+}
+function inkSave(key,cv){
+  if(!key||!cv||!cv.width) return;
+  try{
+    if(!inkHasDrawing(cv)){ if(inkStore[key]){ delete inkStore[key]; inkFlush(); } return; }
+    let url=null;
+    try{ const w=cv.toDataURL('image/webp',0.6); if(w&&w.indexOf('image/webp')>0) url=w; }catch(e){}
+    if(!url) url=cv.toDataURL('image/png');
+    inkStore[key]=url; inkFlush();
+  }catch(e){}
+}
+function inkRestore(key,cv){
+  const url=key&&inkStore[key]; if(!url||!cv) return;
+  const img=new Image();
+  img.onload=function(){ try{ const ctx=cv.getContext('2d'); ctx.save(); ctx.setTransform(1,0,0,1,0,0);
+    ctx.globalCompositeOperation='source-over'; ctx.drawImage(img,0,0,cv.width,cv.height); ctx.restore(); }catch(e){} };
+  img.src=url;
+}
+function inkClear(key,cv){ if(key&&inkStore[key]){ delete inkStore[key]; inkFlush(); } }
+function inkWatch(key,cv){            // 펜 코드와 별개로 '획 끝날 때' 저장만 담당
+  if(!cv||cv._inkWatched) return; cv._inkWatched=true;
+  let t=null; const save=function(){ clearTimeout(t); t=setTimeout(function(){ inkSave(key,cv); },400); };
+  ['touchend','touchcancel','pointerup','pointercancel','mouseup','mouseleave'].forEach(function(ev){
+    cv.addEventListener(ev,save,{passive:true});
+  });
+  cv._inkSaveNow=function(){ inkSave(key,cv); };
+}
+function inkSaveAllVisible(){
+  document.querySelectorAll('#qlist canvas.wcanvas').forEach(function(cv){ if(cv._inkSaveNow) cv._inkSaveNow(); });
+}
+window.addEventListener('pagehide', inkSaveAllVisible);
+window.addEventListener('beforeunload', inkSaveAllVisible);
+document.addEventListener('visibilitychange', function(){ if(document.visibilityState==='hidden') inkSaveAllVisible(); });
+
 function buildWongo(wongo){
   if(wongo.dataset.built)return;
   const text=wongo.dataset.text||''; const len=Array.from(text).length;
@@ -305,9 +355,9 @@ function buildWongo(wongo){
   for(let i=0;i<rows*COLS;i++){ const c=document.createElement('div'); c.className='wcell'; grid.appendChild(c); }
   wongo.innerHTML=''; wongo.appendChild(grid);
   const cv=document.createElement('canvas'); cv.className='wcanvas'; wongo.appendChild(cv);
-  const btn=document.createElement('button'); btn.className='clearpen'; btn.textContent='지우기'; btn.addEventListener('click',()=>{const ctx=cv.getContext('2d');ctx.clearRect(0,0,cv.width,cv.height);});
+  const btn=document.createElement('button'); btn.className='clearpen'; btn.textContent='지우기'; btn.addEventListener('click',()=>{const ctx=cv.getContext('2d');ctx.clearRect(0,0,cv.width,cv.height);inkClear(wongo.dataset.key,cv);});
   wongo.appendChild(btn); wongo.dataset.built='1';
-  requestAnimationFrame(()=>sizeCanvas(cv,grid));
+  requestAnimationFrame(()=>{ sizeCanvas(cv,grid); inkRestore(wongo.dataset.key,cv); inkWatch(wongo.dataset.key,cv); });
 }
 function sizeCanvas(cv,grid){
   if(cv._wired) return;
