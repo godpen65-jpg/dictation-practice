@@ -144,6 +144,7 @@
         </div>
         <button class="speedbtn on" id="slowBtn" onclick="toggleSlow()">🐢 천천히</button>
         <button class="speedbtn" id="eraseBtn" onclick="toggleErase()">🧽 지우개</button>
+        <button class="speedbtn" id="flashBtn" onclick="fcStart()">⚡ 플래시카드</button>
       </div>
     </div>
     <div id="qlist"></div>
@@ -155,7 +156,7 @@
     <p class="tip" id="doneTip"></p>
   </section>
 
-  <div class="footer">엄마가 만든 받아쓰기 연습장 · 아이와 함께 매일매일 😊<br><span style="opacity:.7">버전 0826-1623</span></div>
+  <div class="footer">엄마가 만든 받아쓰기 연습장 · 아이와 함께 매일매일 😊<br><span style="opacity:.7">버전 0827-1318</span></div>
 </div>
 
 <script>
@@ -511,5 +512,78 @@ document.addEventListener('keydown',function(e){if(e.key==='Escape') hlpClose();
 })();
 </script>
 <!-- VISITOR_VERSION_END -->
+<!--FLASH_START-->
+<style>
+#fc{position:fixed;inset:0;z-index:99990;background:#fff;color:#12212e;display:none;
+  flex-direction:column;align-items:center;justify-content:center;padding:24px;text-align:center;
+  font-family:"Malgun Gothic","맑은 고딕",system-ui,sans-serif;}
+#fc.on{display:flex}
+#fc .fbar{position:absolute;top:0;left:0;height:7px;background:#4aa8f0;transition:width .12s linear}
+#fc .ftop{position:absolute;top:16px;left:0;right:0;display:flex;align-items:center;gap:10px;padding:0 18px}
+#fc .flabel{font-size:14px;font-weight:800;color:#8aa3b8}
+#fc .fclose{margin-left:auto;background:#eef5fb;color:#5b7a95;border:none;border-radius:999px;
+  width:42px;height:42px;font-size:20px;cursor:pointer}
+#fc .fword{font-size:min(17vw,150px);font-weight:800;line-height:1.25;word-break:keep-all;
+  max-width:94%;letter-spacing:-1px;animation:fpop .16s ease}
+@keyframes fpop{from{transform:scale(.86);opacity:0}to{transform:scale(1);opacity:1}}
+#fc .fbtns{position:absolute;bottom:24px;display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+#fc .fbtns button{background:#eef5fb;color:#2c4a63;border:none;border-radius:13px;
+  padding:12px 18px;font-size:15px;font-weight:800;cursor:pointer}
+#fc .fbtns button.on{background:#1e88e5;color:#fff}
+#fc .fbtns button:active{transform:translateY(1px)}
+</style>
+<div id="fc">
+  <div class="fbar" id="fBar" style="width:0"></div>
+  <div class="ftop"><span class="flabel" id="fLabel"></span>
+    <button class="fclose" onclick="fcStop()">✕</button></div>
+  <div class="fword" id="fWord"></div>
+  <div class="fbtns">
+    <button id="fSpeed" onclick="fcSpeed()">⏱ 보통</button>
+    <button id="fSound" class="on" onclick="fcSound()">🔊 소리</button>
+    <button id="fLoop" class="on" onclick="fcLoop()">🔁 반복</button>
+    <button id="fPause" onclick="fcPause()">⏸ 잠깐</button>
+  </div>
+</div>
+<script>
+/* ---------- 플래시카드 (기존 음성 그대로) ---------- */
+let fcList=[], fcIdx=0, fcT=null, fcMs=1500, fcSnd=true, fcRep=true, fcOn=false;
+const FC_SPEEDS=[[900,'빠르게'],[1500,'보통'],[2500,'천천히']];
+function fcStart(){
+  const [s,e]=dayRange(curDay);
+  fcList=[]; for(let i=s;i<e;i++) fcList.push(curCat.items[i]);
+  if(!fcList.length) return;
+  fcIdx=0; fcOn=true;
+  document.getElementById('fc').classList.add('on');
+  fcShow();
+}
+function fcStop(){ fcOn=false; clearTimeout(fcT); try{speechSynthesis.cancel();}catch(e){}
+  document.getElementById('fc').classList.remove('on'); }
+function fcShow(){
+  if(fcIdx>=fcList.length){
+    if(fcRep){ fcIdx=0; } else { document.getElementById('fWord').textContent='🎉'; 
+      document.getElementById('fBar').style.width='100%'; fcT=setTimeout(fcStop,1400); return; } }
+  const it=fcList[fcIdx];
+  const w=document.getElementById('fWord');
+  w.textContent=it.text; w.style.animation='none'; void w.offsetWidth; w.style.animation='';
+  document.getElementById('fLabel').textContent=it.unit+'  ·  '+(fcIdx+1)+'/'+fcList.length;
+  document.getElementById('fBar').style.width=Math.round((fcIdx+1)/fcList.length*100)+'%';
+  if(fcSnd) speak(it.text);
+  fcT=setTimeout(()=>{ fcIdx++; fcShow(); }, fcMs);
+}
+function fcSpeed(){
+  const i=FC_SPEEDS.findIndex(s=>s[0]===fcMs);
+  const n=FC_SPEEDS[(i+1)%FC_SPEEDS.length]; fcMs=n[0];
+  document.getElementById('fSpeed').textContent='⏱ '+n[1];
+}
+function fcSound(){ fcSnd=!fcSnd; document.getElementById('fSound').classList.toggle('on',fcSnd);
+  if(!fcSnd){ try{speechSynthesis.cancel();}catch(e){} } }
+function fcLoop(){ fcRep=!fcRep; document.getElementById('fLoop').classList.toggle('on',fcRep); }
+function fcPause(){
+  const b=document.getElementById('fPause');
+  if(fcT){ clearTimeout(fcT); fcT=null; b.textContent='▶ 계속'; try{speechSynthesis.cancel();}catch(e){} }
+  else { b.textContent='⏸ 잠깐'; fcIdx++; fcShow(); }
+}
+</script>
+<!--FLASH_END-->
 </body>
 </html>
