@@ -38,7 +38,13 @@ function say(t,r){
  setTimeout(()=>{ if(!speechSynthesis.speaking&&!speechSynthesis.pending){
    try{speechSynthesis.speak(new SpeechSynthesisUtterance(t))}catch(e){} } },350);
 }
-document.getElementById('list').innerHTML=T.map(([n,t,d,r])=>
- `<div class="row"><span class="nm">${n}번<span class="dt">${d}</span></span>
-  <button onclick="say(${JSON.stringify(t)},${r})">▶ 듣기</button></div>`).join('');
+const L=document.getElementById('list');
+T.forEach(([n,t,d,r])=>{
+  const row=document.createElement('div'); row.className='row';
+  const s=document.createElement('span'); s.className='nm';
+  s.innerHTML=n+'번<span class="dt">'+d+'</span>';
+  const b=document.createElement('button'); b.textContent='▶ 듣기';
+  b.addEventListener('click',()=>say(t,r));      // 따옴표 깨짐 방지
+  row.appendChild(s); row.appendChild(b); L.appendChild(row);
+});
 </script></body></html>
