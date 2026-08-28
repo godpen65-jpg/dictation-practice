@@ -30,9 +30,14 @@ function pick(){const vs=speechSynthesis.getVoices();ko=vs.find(v=>v.lang==='ko-
  document.getElementById('v').textContent=ko?ko.name:'한국어 목소리 없음';}
 pick();speechSynthesis.onvoiceschanged=pick;
 document.addEventListener('pointerdown',()=>{try{const u=new SpeechSynthesisUtterance(' ');u.volume=0;speechSynthesis.speak(u);}catch(e){}},{once:true});
-function say(t,r){try{speechSynthesis.cancel()}catch(e){}
- setTimeout(()=>{const u=new SpeechSynthesisUtterance(t);u.lang='ko-KR';if(ko)u.voice=ko;u.rate=r;u.pitch=1;
- try{speechSynthesis.resume()}catch(e){}speechSynthesis.speak(u)},60);}
+function say(t,r){
+ const u=new SpeechSynthesisUtterance(t);u.lang='ko-KR';if(ko)u.voice=ko;u.rate=r;u.pitch=1;
+ try{speechSynthesis.cancel()}catch(e){}
+ try{speechSynthesis.resume()}catch(e){}
+ speechSynthesis.speak(u);                      // 클릭 즉시 호출(iOS 필수)
+ setTimeout(()=>{ if(!speechSynthesis.speaking&&!speechSynthesis.pending){
+   try{speechSynthesis.speak(new SpeechSynthesisUtterance(t))}catch(e){} } },350);
+}
 document.getElementById('list').innerHTML=T.map(([n,t,d,r])=>
  `<div class="row"><span class="nm">${n}번<span class="dt">${d}</span></span>
   <button onclick="say(${JSON.stringify(t)},${r})">▶ 듣기</button></div>`).join('');
