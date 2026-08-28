@@ -23,8 +23,8 @@ const T=[
  ["3","신나요!","느낌표",0.9],
  ["4","신나요.","조금 빠르게",1.05],
  ["5","신나요.","보통 속도",1.0],
- ["6","신 나 요","글자 띄움",0.9],
- ["7","신나요~","물결",0.95]];
+ ["6","신 나 요","글자 띄움",0.9]
+];
 let ko=null;
 function pick(){const vs=speechSynthesis.getVoices();ko=vs.find(v=>v.lang==='ko-KR')||vs.find(v=>v.lang&&v.lang.toLowerCase().startsWith('ko'))||null;
  document.getElementById('v').textContent=ko?ko.name:'한국어 목소리 없음';}
