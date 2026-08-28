@@ -156,7 +156,7 @@
     <p class="tip" id="doneTip"></p>
   </section>
 
-  <div class="footer">엄마가 만든 받아쓰기 연습장 · 아이와 함께 매일매일 😊<br><span style="opacity:.7">버전 0827-1349</span></div>
+  <div class="footer">엄마가 만든 받아쓰기 연습장 · 아이와 함께 매일매일 😊<br><span style="opacity:.7">버전 0828-2042</span></div>
 </div>
 
 <script>
@@ -185,7 +185,7 @@ if('speechSynthesis' in window){ pickVoice(); speechSynthesis.onvoiceschanged=pi
 function warmup(){ if(warmed||!('speechSynthesis' in window))return; warmed=true; try{const u=new SpeechSynthesisUtterance(' ');u.volume=0;speechSynthesis.speak(u);}catch(e){} }
 document.addEventListener('pointerdown', warmup, {once:true});
 document.addEventListener('click', warmup, {once:true});
-function makeUtter(text){ const u=new SpeechSynthesisUtterance(text); u.lang='ko-KR'; if(koVoice)u.voice=koVoice; u.rate=slow?0.72:0.86; u.pitch=1.0; return u; }
+function makeUtter(text){ const u=new SpeechSynthesisUtterance(text); u.lang='ko-KR'; if(koVoice)u.voice=koVoice; u.rate=slow?0.8:0.92; u.pitch=1.0; return u; }
 function speak(text){
   if(!('speechSynthesis' in window)){ alert('이 기기는 소리 읽어주기를 지원하지 않아요.\n크롬이나 엣지로 열어 주세요.'); return; }
   const synth=window.speechSynthesis; if(!koVoice) pickVoice();
@@ -540,13 +540,14 @@ document.addEventListener('keydown',function(e){if(e.key==='Escape') hlpClose();
   <div class="fbtns">
     <button id="fSpeed" onclick="fcSpeed()">⏱ 보통</button>
     <button id="fSound" class="on" onclick="fcSound()">🔊 소리</button>
+    <button id="fVoice" onclick="fcVoice()">🗣 말 보통</button>
     <button id="fLoop" class="on" onclick="fcLoop()">🔁 반복</button>
     <button id="fPause" onclick="fcPause()">⏸ 잠깐</button>
   </div>
 </div>
 <script>
 /* ---------- 플래시카드 (기존 음성 그대로) ---------- */
-let fcList=[], fcIdx=0, fcT=null, fcSeq=0, fcMs=1500, fcSnd=true, fcRep=true, fcOn=false;
+let fcRate=0.9, fcList=[], fcIdx=0, fcT=null, fcSeq=0, fcMs=1500, fcSnd=true, fcRep=true, fcOn=false;
 const FC_SPEEDS=[[900,'빠르게'],[1500,'보통'],[2500,'천천히']];
 function fcStart(){
   const [s,e]=dayRange(curDay);
@@ -573,7 +574,7 @@ function fcShow(){
   const go=()=>{ if(!fcOn||my!==fcSeq) return; fcIdx++; fcShow(); };
   if(fcSnd && ('speechSynthesis' in window)){
     try{speechSynthesis.cancel();}catch(e){}
-    const u=makeUtter(it.text); u.rate=Math.min(u.rate,0.62);
+    const u=makeUtter(it.text); u.rate=fcRate;
     u.onend=u.onerror=()=>{ if(my!==fcSeq) return; clearTimeout(fcT); fcT=setTimeout(go,fcMs); };
     setTimeout(()=>{ if(my!==fcSeq) return; try{speechSynthesis.resume();}catch(e){} speechSynthesis.speak(u); },50);
     fcT=setTimeout(go, 1200+n*450+fcMs);   // 소리가 안 끝나도 넘어가는 안전장치
@@ -583,6 +584,14 @@ function fcSpeed(){
   const i=FC_SPEEDS.findIndex(s=>s[0]===fcMs);
   const n=FC_SPEEDS[(i+1)%FC_SPEEDS.length]; fcMs=n[0];
   document.getElementById('fSpeed').textContent='⏱ '+n[1];
+}
+function fcVoice(){
+  const S=[[0.9,'보통'],[0.78,'천천히'],[0.68,'아주 천천히'],[1.05,'빠르게']];
+  const i=S.findIndex(s=>s[0]===fcRate); const n=S[(i+1)%S.length];
+  fcRate=n[0]; document.getElementById('fVoice').textContent='🗣 말 '+n[1];
+  try{speechSynthesis.cancel();}catch(e){}
+  const it=fcList[fcIdx]; if(it&&fcSnd){ const u=makeUtter(it.text); u.rate=fcRate;
+    setTimeout(()=>speechSynthesis.speak(u),60); }
 }
 function fcSound(){ fcSnd=!fcSnd; document.getElementById('fSound').classList.toggle('on',fcSnd);
   if(!fcSnd){ try{speechSynthesis.cancel();}catch(e){} } }
