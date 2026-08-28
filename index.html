@@ -156,7 +156,7 @@
     <p class="tip" id="doneTip"></p>
   </section>
 
-  <div class="footer">엄마가 만든 받아쓰기 연습장 · 아이와 함께 매일매일 😊<br><span style="opacity:.7">버전 0828-2042</span></div>
+  <div class="footer">엄마가 만든 받아쓰기 연습장 · 아이와 함께 매일매일 😊<br><span style="opacity:.7">버전 0829-0803</span></div>
 </div>
 
 <script>
@@ -547,7 +547,7 @@ document.addEventListener('keydown',function(e){if(e.key==='Escape') hlpClose();
 </div>
 <script>
 /* ---------- 플래시카드 (기존 음성 그대로) ---------- */
-let fcRate=0.9, fcList=[], fcIdx=0, fcT=null, fcSeq=0, fcMs=1500, fcSnd=true, fcRep=true, fcOn=false;
+let fcRate=0.8, fcList=[], fcIdx=0, fcT=null, fcSeq=0, fcMs=1500, fcSnd=true, fcRep=true, fcOn=false;
 const FC_SPEEDS=[[900,'빠르게'],[1500,'보통'],[2500,'천천히']];
 function fcStart(){
   const [s,e]=dayRange(curDay);
@@ -586,7 +586,7 @@ function fcSpeed(){
   document.getElementById('fSpeed').textContent='⏱ '+n[1];
 }
 function fcVoice(){
-  const S=[[0.9,'보통'],[0.78,'천천히'],[0.68,'아주 천천히'],[1.05,'빠르게']];
+  const S=[[0.8,'보통'],[0.7,'천천히'],[0.62,'아주 천천히'],[0.95,'빠르게']];
   const i=S.findIndex(s=>s[0]===fcRate); const n=S[(i+1)%S.length];
   fcRate=n[0]; document.getElementById('fVoice').textContent='🗣 말 '+n[1];
   try{speechSynthesis.cancel();}catch(e){}
