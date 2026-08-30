@@ -166,7 +166,7 @@
     <p class="tip" id="doneTip"></p>
   </section>
 
-  <div class="footer">엄마가 만든 받아쓰기 연습장 · 아이와 함께 매일매일 😊<br><span style="opacity:.7">버전 0830-1827</span></div>
+  <div class="footer">엄마가 만든 받아쓰기 연습장 · 아이와 함께 매일매일 😊<br><span style="opacity:.7">버전 0830-1831</span></div>
 </div>
 
 <script>
@@ -196,15 +196,27 @@ function warmup(){ if(warmed||!('speechSynthesis' in window))return; warmed=true
 document.addEventListener('pointerdown', warmup, {once:true});
 document.addEventListener('click', warmup, {once:true});
 function makeUtter(text){ const u=new SpeechSynthesisUtterance(text); u.lang='ko-KR'; if(koVoice)u.voice=koVoice; u.rate=slow?0.8:0.92; u.pitch=1.0; return u; }
+function chunks(text){ return String(text).split(' ').filter(x=>x!==''); }
+function speakParts(text, rate, onDone){        // 띄어쓰기마다 쉬어 읽기
+  const synth=window.speechSynthesis; if(!koVoice) pickVoice();
+  const parts=chunks(text); const us=[];
+  parts.forEach((p,i)=>{
+    const u=makeUtter(p); if(rate) u.rate=rate;
+    if(i===parts.length-1 && onDone) u.onend=u.onerror=onDone;
+    us.push(u);
+  });
+  window.__lastUtter=us;                        // 중간에 사라지지 않게 붙잡아 둠
+  us.forEach(u=>synth.speak(u));
+  return us.length;
+}
 function speak(text){
   if(!('speechSynthesis' in window)){ alert('이 기기는 소리 읽어주기를 지원하지 않아요. 크롬이나 엣지로 열어 주세요.'); return; }
-  const synth=window.speechSynthesis; if(!koVoice) pickVoice();
+  const synth=window.speechSynthesis;
   try{ synth.cancel(); }catch(e){}
   try{ synth.resume(); }catch(e){}
-  const u=makeUtter(text); window.__lastUtter=u;      // 중간에 사라지지 않게 붙잡아 둠
-  synth.speak(u);                                      // 클릭 즉시 재생(아이패드 필수)
-  setTimeout(()=>{ if(!synth.speaking && !synth.pending){       // 안 나갔으면 한 번만 재시도
-    try{ synth.resume(); const v=makeUtter(text); window.__lastUtter=v; synth.speak(v); }catch(e){} } },300);
+  speakParts(text);                              // 클릭 즉시 재생(아이패드 필수)
+  setTimeout(()=>{ if(!synth.speaking && !synth.pending){      // 안 나갔으면 한 번만 재시도
+    try{ synth.resume(); speakParts(text); }catch(e){} } },300);
 }
 
 /* ---------- 화면 전환 ---------- */
@@ -625,9 +637,8 @@ function fcShow(){
   const go=()=>{ if(!fcOn||my!==fcSeq) return; fcIdx++; fcShow(); };
   if(fcSnd && ('speechSynthesis' in window)){
     try{speechSynthesis.cancel();}catch(e){}
-    const u=makeUtter(it.text); u.rate=fcRate;
-    u.onend=u.onerror=()=>{ if(my!==fcSeq) return; clearTimeout(fcT); fcT=setTimeout(go,fcMs); };
-    setTimeout(()=>{ if(my!==fcSeq) return; try{speechSynthesis.resume();}catch(e){} speechSynthesis.speak(u); },50);
+    setTimeout(()=>{ if(my!==fcSeq) return; try{speechSynthesis.resume();}catch(e){}
+      speakParts(it.text, fcRate, ()=>{ if(my!==fcSeq) return; clearTimeout(fcT); fcT=setTimeout(go,fcMs); }); },50);
     fcT=setTimeout(go, 1200+n*450+fcMs);   // 소리가 안 끝나도 넘어가는 안전장치
   } else { fcT=setTimeout(go,fcMs); }
 }
@@ -641,8 +652,7 @@ function fcVoice(){
   const i=S.findIndex(s=>s[0]===fcRate); const n=S[(i+1)%S.length];
   fcRate=n[0]; document.getElementById('fVoice').textContent='🗣 말 '+n[1];
   try{speechSynthesis.cancel();}catch(e){}
-  const it=fcList[fcIdx]; if(it&&fcSnd){ const u=makeUtter(it.text); u.rate=fcRate;
-    setTimeout(()=>speechSynthesis.speak(u),60); }
+  const it=fcList[fcIdx]; if(it&&fcSnd){ setTimeout(()=>speakParts(it.text,fcRate),60); }
 }
 function fcSound(){ fcSnd=!fcSnd; document.getElementById('fSound').classList.toggle('on',fcSnd);
   if(!fcSnd){ try{speechSynthesis.cancel();}catch(e){} } }
