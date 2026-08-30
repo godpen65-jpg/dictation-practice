@@ -166,7 +166,7 @@
     <p class="tip" id="doneTip"></p>
   </section>
 
-  <div class="footer">엄마가 만든 받아쓰기 연습장 · 아이와 함께 매일매일 😊<br><span style="opacity:.7">버전 0830-1831</span></div>
+  <div class="footer">엄마가 만든 받아쓰기 연습장 · 아이와 함께 매일매일 😊<br><span style="opacity:.7">버전 0830-1834</span></div>
 </div>
 
 <script>
@@ -196,18 +196,14 @@ function warmup(){ if(warmed||!('speechSynthesis' in window))return; warmed=true
 document.addEventListener('pointerdown', warmup, {once:true});
 document.addEventListener('click', warmup, {once:true});
 function makeUtter(text){ const u=new SpeechSynthesisUtterance(text); u.lang='ko-KR'; if(koVoice)u.voice=koVoice; u.rate=slow?0.8:0.92; u.pitch=1.0; return u; }
-function chunks(text){ return String(text).split(' ').filter(x=>x!==''); }
-function speakParts(text, rate, onDone){        // 띄어쓰기마다 쉬어 읽기
+function pauseText(t){ return String(t).split(' ').filter(x=>x!=='').join(', '); }
+function speakParts(text, rate, onDone){        // 한 번에 읽되 띄어쓰기에서 쉬기
   const synth=window.speechSynthesis; if(!koVoice) pickVoice();
-  const parts=chunks(text); const us=[];
-  parts.forEach((p,i)=>{
-    const u=makeUtter(p); if(rate) u.rate=rate;
-    if(i===parts.length-1 && onDone) u.onend=u.onerror=onDone;
-    us.push(u);
-  });
-  window.__lastUtter=us;                        // 중간에 사라지지 않게 붙잡아 둠
-  us.forEach(u=>synth.speak(u));
-  return us.length;
+  const u=makeUtter(pauseText(text)); if(rate) u.rate=rate;
+  if(onDone) u.onend=u.onerror=onDone;
+  window.__lastUtter=u;                         // 중간에 사라지지 않게 붙잡아 둠
+  synth.speak(u);
+  return 1;
 }
 function speak(text){
   if(!('speechSynthesis' in window)){ alert('이 기기는 소리 읽어주기를 지원하지 않아요. 크롬이나 엣지로 열어 주세요.'); return; }
