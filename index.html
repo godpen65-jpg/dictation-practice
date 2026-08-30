@@ -156,7 +156,7 @@
     <p class="tip" id="doneTip"></p>
   </section>
 
-  <div class="footer">엄마가 만든 받아쓰기 연습장 · 아이와 함께 매일매일 😊<br><span style="opacity:.7">버전 0829-0803</span></div>
+  <div class="footer">엄마가 만든 받아쓰기 연습장 · 아이와 함께 매일매일 😊<br><span style="opacity:.7">버전 0830-0914</span></div>
 </div>
 
 <script>
@@ -187,10 +187,14 @@ document.addEventListener('pointerdown', warmup, {once:true});
 document.addEventListener('click', warmup, {once:true});
 function makeUtter(text){ const u=new SpeechSynthesisUtterance(text); u.lang='ko-KR'; if(koVoice)u.voice=koVoice; u.rate=slow?0.8:0.92; u.pitch=1.0; return u; }
 function speak(text){
-  if(!('speechSynthesis' in window)){ alert('이 기기는 소리 읽어주기를 지원하지 않아요.\n크롬이나 엣지로 열어 주세요.'); return; }
+  if(!('speechSynthesis' in window)){ alert('이 기기는 소리 읽어주기를 지원하지 않아요. 크롬이나 엣지로 열어 주세요.'); return; }
   const synth=window.speechSynthesis; if(!koVoice) pickVoice();
-  if(synth.speaking||synth.pending){ try{synth.cancel();}catch(e){} setTimeout(()=>{try{synth.resume();}catch(e){} synth.speak(makeUtter(text));},60); }
-  else { try{synth.resume();}catch(e){} synth.speak(makeUtter(text)); }
+  try{ synth.cancel(); }catch(e){}
+  try{ synth.resume(); }catch(e){}
+  const u=makeUtter(text); window.__lastUtter=u;      // 중간에 사라지지 않게 붙잡아 둠
+  synth.speak(u);                                      // 클릭 즉시 재생(아이패드 필수)
+  setTimeout(()=>{ if(!synth.speaking && !synth.pending){       // 안 나갔으면 한 번만 재시도
+    try{ synth.resume(); const v=makeUtter(text); window.__lastUtter=v; synth.speak(v); }catch(e){} } },300);
 }
 
 /* ---------- 화면 전환 ---------- */
