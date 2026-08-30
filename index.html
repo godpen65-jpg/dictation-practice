@@ -166,7 +166,7 @@
     <p class="tip" id="doneTip"></p>
   </section>
 
-  <div class="footer">엄마가 만든 받아쓰기 연습장 · 아이와 함께 매일매일 😊<br><span style="opacity:.7">버전 0830-1838</span></div>
+  <div class="footer">엄마가 만든 받아쓰기 연습장 · 아이와 함께 매일매일 😊<br><span style="opacity:.7">버전 0830-1842</span></div>
 </div>
 
 <script>
@@ -195,7 +195,7 @@ if('speechSynthesis' in window){ pickVoice(); speechSynthesis.onvoiceschanged=pi
 function warmup(){ if(warmed||!('speechSynthesis' in window))return; warmed=true; try{const u=new SpeechSynthesisUtterance(' ');u.volume=0;speechSynthesis.speak(u);}catch(e){} }
 document.addEventListener('pointerdown', warmup, {once:true});
 document.addEventListener('click', warmup, {once:true});
-function makeUtter(text){ const u=new SpeechSynthesisUtterance(text); u.lang='ko-KR'; if(koVoice)u.voice=koVoice; u.rate=slow?0.72:0.85; u.pitch=1.0; return u; }
+function makeUtter(text){ const u=new SpeechSynthesisUtterance(text); u.lang='ko-KR'; if(koVoice)u.voice=koVoice; u.rate=slow?0.9:1.0; u.pitch=1.0; return u; }
 function pauseText(t){ return String(t); }   // 원문 그대로(끊김 방지)
 function speakParts(text, rate, onDone){
   const synth=window.speechSynthesis; if(!koVoice) pickVoice();
@@ -209,7 +209,7 @@ function speakParts(text, rate, onDone){
 function speak(text){
   if(!('speechSynthesis' in window)){ alert('이 기기는 소리 읽어주기를 지원하지 않아요. 크롬이나 엣지로 열어 주세요.'); return; }
   const synth=window.speechSynthesis;
-  try{ synth.cancel(); }catch(e){}
+  try{ if(synth.speaking||synth.pending) synth.cancel(); }catch(e){}
   try{ synth.resume(); }catch(e){}
   speakParts(text);                              // 클릭 즉시 재생(아이패드 필수)
   setTimeout(()=>{ if(!window.__spoke && !synth.speaking && !synth.pending){   // 아예 안 나갔을 때만
@@ -607,7 +607,7 @@ document.addEventListener('keydown',function(e){if(e.key==='Escape') hlpClose();
 </div>
 <script>
 /* ---------- 플래시카드 (기존 음성 그대로) ---------- */
-let fcRate=0.72, fcList=[], fcIdx=0, fcT=null, fcSeq=0, fcMs=1500, fcSnd=true, fcRep=true, fcOn=false;
+let fcRate=1.0, fcList=[], fcIdx=0, fcT=null, fcSeq=0, fcMs=1500, fcSnd=true, fcRep=true, fcOn=false;
 const FC_SPEEDS=[[900,'빠르게'],[1500,'보통'],[2500,'천천히']];
 function fcStart(){
   const [s,e]=dayRange(curDay);
@@ -645,7 +645,7 @@ function fcSpeed(){
   document.getElementById('fSpeed').textContent='⏱ '+n[1];
 }
 function fcVoice(){
-  const S=[[0.72,'보통'],[0.62,'천천히'],[0.55,'아주 천천히'],[0.85,'빠르게']];
+  const S=[[1.0,'보통'],[0.9,'천천히'],[0.8,'더 천천히'],[1.1,'빠르게']];
   const i=S.findIndex(s=>s[0]===fcRate); const n=S[(i+1)%S.length];
   fcRate=n[0]; document.getElementById('fVoice').textContent='🗣 말 '+n[1];
   try{speechSynthesis.cancel();}catch(e){}
