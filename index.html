@@ -56,6 +56,7 @@
   .toggle button.on{background:var(--blue2);color:#fff;}
   .speedbtn{border:2px solid var(--line);background:#fff;color:var(--blue2);border-radius:9px;padding:5px 10px;font-size:12px;font-weight:800;cursor:pointer;}
   .speedbtn.on{background:#fff4d9;border-color:#f4c34a;color:#b9791a;}
+  #markPenBtn.on{background:#e6f0ff;border-color:#1565d8;color:#1565d8;}
 
   .qcard{background:#fff;border:2px solid var(--line);border-radius:18px;padding:16px 16px 18px;margin-bottom:14px;box-shadow:0 3px 10px rgba(80,150,220,.08);position:relative;}
   .qcard.mo{border-color:#bfe6cd;background:#f7fcf9;}
@@ -144,6 +145,7 @@
         </div>
         <button class="speedbtn on" id="slowBtn" onclick="toggleSlow()">🐢 천천히</button>
         <button class="speedbtn" id="eraseBtn" onclick="toggleErase()">🧽 지우개</button>
+        <button class="speedbtn" id="markPenBtn" onclick="toggleInk()">🖊 채점펜</button>
         <button class="speedbtn" id="flashBtn" onclick="fcStart()">⚡ 플래시카드</button>
       </div>
     </div>
@@ -156,7 +158,7 @@
     <p class="tip" id="doneTip"></p>
   </section>
 
-  <div class="footer">엄마가 만든 받아쓰기 연습장 · 아이와 함께 매일매일 😊<br><span style="opacity:.7">버전 0830-0914</span></div>
+  <div class="footer">엄마가 만든 받아쓰기 연습장 · 아이와 함께 매일매일 😊<br><span style="opacity:.7">버전 0830-0925</span></div>
 </div>
 
 <script>
@@ -165,7 +167,7 @@ const CATS = DATA.categories;
 const GROUP = 10;
 const PKEY = 'badasseugi_progress_v2';
 
-let curCat=null, curDay=0, mode='pen', slow=true, penDownG=false, lastPenT=0, stylusSeen=false, eraseMode=false;
+let curCat=null, curDay=0, mode='pen', slow=true, penDownG=false, lastPenT=0, stylusSeen=false, eraseMode=false, inkColor='#20364a';
 let prog = loadProg();
 function loadProg(){ try{return JSON.parse(localStorage.getItem(PKEY))||{};}catch(e){return {};} }
 function saveProg(){ try{localStorage.setItem(PKEY, JSON.stringify(prog));}catch(e){} }
@@ -297,6 +299,13 @@ function applyMode(){ document.querySelectorAll('#qlist .penbox').forEach(e=>e.c
   const eb=document.getElementById('eraseBtn'); if(eb) eb.style.display = (mode==='pen')?'':'none';
   if(mode==='pen') requestAnimationFrame(()=>document.querySelectorAll('#qlist .wongo').forEach(buildWongo)); }
 function toggleSlow(){ slow=!slow; document.getElementById('slowBtn').classList.toggle('on',slow); }
+function toggleInk(){
+  inkColor = (inkColor==='#20364a') ? '#1565d8' : '#20364a';
+  const on = inkColor!=='#20364a';
+  const b=document.getElementById('markPenBtn');
+  b.classList.toggle('on',on); b.textContent = on ? '🖊 채점펜 ON' : '🖊 채점펜';
+  if(on && eraseMode) toggleErase();          // 지우개는 꺼 줌
+}
 function toggleErase(){ eraseMode=!eraseMode; const b=document.getElementById('eraseBtn'); b.classList.toggle('on',eraseMode); b.textContent = eraseMode?'🧽 지우개 ON':'🧽 지우개'; }
 
 /* ---------- 원고지(펜) ---------- */
@@ -372,9 +381,9 @@ function sizeCanvas(cv,grid){
   cv._wired=true;
   let lx=0, ly=0, activeId=null;
   const P=(cx,cy)=>{const b=cv.getBoundingClientRect(); return [cx-b.left, cy-b.top];};
-  const setBrush=()=>{ if(eraseMode){ ctx.globalCompositeOperation='destination-out'; ctx.lineWidth=26; } else { ctx.globalCompositeOperation='source-over'; ctx.lineWidth=3.2; } };
+  const setBrush=()=>{ if(eraseMode){ ctx.globalCompositeOperation='destination-out'; ctx.lineWidth=26; } else { ctx.globalCompositeOperation='source-over'; ctx.lineWidth=(inkColor==='#20364a'?3.2:4.8); ctx.strokeStyle=inkColor; } };
   const lineTo=(x,y)=>{ setBrush(); ctx.beginPath(); ctx.moveTo(lx,ly); ctx.lineTo(x,y); ctx.stroke(); lx=x; ly=y; };
-  const dot=(x,y)=>{ setBrush(); ctx.beginPath(); ctx.arc(x,y, eraseMode?13:1.7, 0,6.283); ctx.fillStyle='#20364a'; ctx.fill(); };
+  const dot=(x,y)=>{ setBrush(); ctx.beginPath(); ctx.arc(x,y, eraseMode?13:1.7, 0,6.283); ctx.fillStyle=inkColor; ctx.fill(); };
   const touchDev = ('ontouchstart' in window) || (navigator.maxTouchPoints>0);
   if(touchDev){
     // iOS/태블릿: 터치이벤트 + touchType으로 팜리젝션(펜 있으면 펜만, 없으면 손가락). 애플펜슬에 안정적.
