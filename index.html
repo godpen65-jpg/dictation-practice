@@ -166,7 +166,7 @@
     <p class="tip" id="doneTip"></p>
   </section>
 
-  <div class="footer">엄마가 만든 받아쓰기 연습장 · 아이와 함께 매일매일 😊<br><span style="opacity:.7">버전 0830-1846</span></div>
+  <div class="footer">엄마가 만든 받아쓰기 연습장 · 아이와 함께 매일매일 😊<br><span style="opacity:.7">버전 0906-0922</span></div>
 </div>
 
 <script>
@@ -316,10 +316,15 @@ function makeCard(idx, no){
   const kbbox=document.createElement('div'); kbbox.className='kbbox hide';
   const inp=document.createElement('input'); inp.className='kbinput'; inp.type='text'; inp.placeholder='여기에 써 보세요'; inp.autocomplete='off'; inp.spellcheck=false;
   const kbmark=document.createElement('div'); kbmark.className='kbmark';
-  inp.addEventListener('input',()=>{ const v=inp.value.trim();
+  inp.addEventListener('input',()=>{ const v=inp.value.trim(), ans=item.text.trim();
     if(v===''){kbmark.textContent='';return;}
-    if(norm(v)===norm(item.text)){kbmark.textContent='⭕ 참 잘했어요! (자동 채점: 맞음)';kbmark.style.color='#1f7a44';setMark(idx,'o',card);}
-    else{kbmark.textContent='✏️ 아직 달라요. 다시 써 볼까요?';kbmark.style.color='#c9702f';}
+    if(v===ans){                                   // 띄어쓰기·문장부호까지 똑같아야 정답
+      kbmark.textContent='⭕ 참 잘했어요! (자동 채점: 맞음)'; kbmark.style.color='#1f7a44'; setMark(idx,'o',card);
+    } else if(norm(v)===norm(ans)){                // 글자는 맞고 띄어쓰기/부호만 다름
+      kbmark.textContent='✏️ 글자는 맞았어요! 띄어쓰기와 문장부호를 다시 봐요'; kbmark.style.color='#c9702f';
+    } else {
+      kbmark.textContent='✏️ 아직 달라요. 다시 써 볼까요?'; kbmark.style.color='#c9702f';
+    }
   });
   kbbox.appendChild(inp); kbbox.appendChild(kbmark); ab.appendChild(kbbox); card.appendChild(ab);
   const rvBtn=document.createElement('button'); rvBtn.className='revealbtn'; rvBtn.textContent='👀 정답보기';
