@@ -181,7 +181,10 @@ const CATS = DATA.categories;
 const GROUP = 10;
 const PKEY = 'badasseugi_progress_v2';
 
-let curCat=null, curDay=0, mode='pen', slow=true, penDownG=false, lastPenT=0, stylusSeen=false, eraseMode=false, inkColor='#20364a';
+let curCat=null, curDay=0, mode='pen', slow=true, penDownG=false, lastPenT=0, stylusSeen=penUsedBefore(), eraseMode=false, inkColor='#20364a';
+// 이 기기에서 펜을 한 번이라도 썼으면 기억해 두고, 다음에 열 때도 처음부터 손은 무시
+function penUsedBefore(){ try{ return localStorage.getItem('badasseugi_pen_used')==='1'; }catch(e){ return false; } }
+function markPenUsed(){ if(stylusSeen) return; stylusSeen=true; try{ localStorage.setItem('badasseugi_pen_used','1'); }catch(e){} }
 let prog = loadProg();
 function loadProg(){ try{return JSON.parse(localStorage.getItem(PKEY))||{};}catch(e){return {};} }
 function saveProg(){ try{localStorage.setItem(PKEY, JSON.stringify(prog));}catch(e){} }
@@ -443,11 +446,34 @@ function sizeCanvas(cv,grid){
   const lineTo=(x,y)=>{ setBrush(); ctx.beginPath(); ctx.moveTo(lx,ly); ctx.lineTo(x,y); ctx.stroke(); lx=x; ly=y; };
   const dot=(x,y)=>{ setBrush(); ctx.beginPath(); ctx.arc(x,y, eraseMode?13:1.7, 0,6.283); ctx.fillStyle=inkColor; ctx.fill(); };
   const touchDev = ('ontouchstart' in window) || (navigator.maxTouchPoints>0);
-  if(touchDev){
+  if(window.PointerEvent){
+    // 펜·손가락·마우스 모두 포인터 이벤트로. 갤럭시탭 S펜도 애플펜슬도 pointerType이 'pen'으로 와서 손바닥과 구별됨
+    // (예전 touchType 방식은 아이패드 사파리에서만 펜을 알아봐서, 갤럭시탭에서는 손바닥도 그려졌음)
+    const PALM=45;                                   // 닿은 면이 이보다 크면(px) 손바닥으로 보고 무시
+    cv.addEventListener('pointerdown',e=>{
+      if(e.pointerType==='pen'){ markPenUsed(); penDownG=true; }
+      else if(e.pointerType==='touch'){
+        // 펜을 쓴 적 있거나 펜이 닿아 있으면 손은 완전 무시. 펜이 없을 땐 손가락 하나만, 넓게 닿으면 손바닥이라 무시
+        if(stylusSeen || penDownG || activeId!==null || Math.max(e.width||0,e.height||0)>PALM){ e.preventDefault(); return; }
+      }
+      activeId=e.pointerId; const[x,y]=P(e.clientX,e.clientY); lx=x; ly=y; dot(x,y);
+      try{cv.setPointerCapture(e.pointerId);}catch(_){ } e.preventDefault();
+    },{passive:false});
+    cv.addEventListener('pointermove',e=>{
+      if(e.pointerId!==activeId) return;
+      const evs=(e.getCoalescedEvents&&e.getCoalescedEvents().length)?e.getCoalescedEvents():[e];
+      for(const ev of evs){ const[x,y]=P(ev.clientX,ev.clientY); lineTo(x,y); }
+      e.preventDefault();
+    },{passive:false});
+    const pe=e=>{ if(e.pointerType==='pen') penDownG=false; if(e.pointerId===activeId) activeId=null; };
+    cv.addEventListener('pointerup',pe); cv.addEventListener('pointercancel',pe);
+    // 손바닥이 먼저 닿아 브라우저가 터치를 스크롤 등으로 가져가지 않게
+    cv.addEventListener('touchstart',e=>e.preventDefault(),{passive:false});
+  } else if(touchDev){
     // iOS/태블릿: 터치이벤트 + touchType으로 팜리젝션(펜 있으면 펜만, 없으면 손가락). 애플펜슬에 안정적.
     const hasStylus=list=>{ for(const t of list){ if(t.touchType==='stylus') return true; } return false; };
     cv.addEventListener('touchstart',e=>{
-      if(hasStylus(e.changedTouches)) stylusSeen=true;
+      if(hasStylus(e.changedTouches)) markPenUsed();
       const stylusNow=hasStylus(e.touches); let t=null;
       for(const ct of e.changedTouches){
         if(ct.touchType==='stylus'){ t=ct; break; }
@@ -534,7 +560,7 @@ buildHome();
 
 <h3>3. 쓰는 방법 두 가지</h3>
 <ul>
-  <li><b>✏️ 펜</b> — 원고지 칸에 손가락이나 펜으로 직접 써요. 지우려면 <b>지우기</b>.</li>
+  <li><b>✏️ 펜</b> — 원고지 칸에 손가락이나 펜으로 직접 써요. 지우려면 <b>지우기</b>.<br>펜(S펜·애플펜슬)을 한 번 쓰면 그 다음부터는 손바닥이 닿아도 펜만 그려져요.</li>
   <li><b>⌨️ 키보드</b> — 글자로 입력해요. 이때는 <b>자동으로 채점</b>돼요.</li>
 </ul>
 
