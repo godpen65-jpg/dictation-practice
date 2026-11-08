@@ -172,7 +172,7 @@
     <p class="tip" id="doneTip"></p>
   </section>
 
-  <div class="footer">엄마가 만든 받아쓰기 연습장 · 아이와 함께 매일매일 😊<br><span style="opacity:.7">버전 1108-2044</span></div>
+  <div class="footer">엄마가 만든 받아쓰기 연습장 · 아이와 함께 매일매일 😊</div>
 </div>
 
 <script>
@@ -635,7 +635,7 @@ document.addEventListener('keydown',function(e){if(e.key==='Escape') hlpClose();
 #site-meta b{color:#ff8bbd;font-weight:normal;}
 @media print{#site-meta{display:none !important;}}
 </style>
-<div id="site-meta">💝 방문 <b><span id="visit-count">…</span></b>회 &nbsp;·&nbsp; v1.0 &nbsp;·&nbsp; 2026-07-28</div>
+<div id="site-meta">💝 방문 <b><span id="visit-count">…</span></b>회 &nbsp;·&nbsp; 버전 1108-2047</div>
 <script>
 (function(){
   var el=document.getElementById('visit-count');
@@ -739,7 +739,7 @@ function fcPause(){
 <script>
 /* 새 버전이 올라오면 다음에 열 때 자동으로 받아오기 (앱으로 깔아도 최신 유지) */
 (function(){
-  var BUILD='1108-2044';
+  var BUILD='1108-2047';
   try{
     fetch('version.txt?t='+Date.now(),{cache:'no-store'})
       .then(function(r){ return r.ok ? r.text() : null; })
