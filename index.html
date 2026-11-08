@@ -172,7 +172,7 @@
     <p class="tip" id="doneTip"></p>
   </section>
 
-  <div class="footer">엄마가 만든 받아쓰기 연습장 · 아이와 함께 매일매일 😊<br><span style="opacity:.7">버전 1108-2036</span></div>
+  <div class="footer">엄마가 만든 받아쓰기 연습장 · 아이와 함께 매일매일 😊<br><span style="opacity:.7">버전 1108-2044</span></div>
 </div>
 
 <script>
@@ -739,7 +739,7 @@ function fcPause(){
 <script>
 /* 새 버전이 올라오면 다음에 열 때 자동으로 받아오기 (앱으로 깔아도 최신 유지) */
 (function(){
-  var BUILD='1108-2036';
+  var BUILD='1108-2044';
   try{
     fetch('version.txt?t='+Date.now(),{cache:'no-store'})
       .then(function(r){ return r.ok ? r.text() : null; })
@@ -754,5 +754,15 @@ function fcPause(){
 })();
 </script>
 <!--AUTOUPDATE_END-->
+<!--SW_START-->
+<script>
+/* 홈 화면 앱으로 설치할 수 있게 (내용은 항상 인터넷에서 최신으로 받아옴) */
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function () {
+    navigator.serviceWorker.register('sw.js').catch(function () {});
+  });
+}
+</script>
+<!--SW_END-->
 </body>
 </html>
