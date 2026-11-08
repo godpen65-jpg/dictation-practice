@@ -172,7 +172,7 @@
     <p class="tip" id="doneTip"></p>
   </section>
 
-  <div class="footer">엄마가 만든 받아쓰기 연습장 · 아이와 함께 매일매일 😊<br><span style="opacity:.7">버전 1108-2023</span></div>
+  <div class="footer">엄마가 만든 받아쓰기 연습장 · 아이와 함께 매일매일 😊<br><span style="opacity:.7">버전 1108-2027</span></div>
 </div>
 
 <script>
@@ -227,7 +227,11 @@ function speak(text){
 
 /* ---------- 화면 전환 ---------- */
 function show(id){ ['home','daylist','practice'].forEach(s=>document.getElementById(s).classList.add('hide')); document.getElementById(id).classList.remove('hide'); window.scrollTo(0,0); }
-function goHome(){ if(window.speechSynthesis)speechSynthesis.cancel(); buildHome(); show('home'); }
+function goHome(){ if(window.speechSynthesis)speechSynthesis.cancel(); window.addEventListener('orientationchange',()=>setTimeout(fitAllCanvas,300));
+window.addEventListener('resize',()=>{ clearTimeout(window.__fitT); window.__fitT=setTimeout(fitAllCanvas,250); });
+function fitAllCanvas(){ document.querySelectorAll('#qlist canvas.wcanvas').forEach(cv=>{ if(cv._fit) cv._fit(); }); }
+
+buildHome(); show('home'); }
 
 /* ---------- 홈: 낱말/문장 ---------- */
 function buildHome(){
@@ -453,6 +457,7 @@ function sizeCanvas(cv,grid){
       ctx.drawImage(old,0,0,old.width,old.height,0,0,cv.width,cv.height); ctx.restore(); }
   };
   fit();
+  cv._fit=fit;
   cv._wired=true;
   if(window.ResizeObserver){ try{ const ro=new ResizeObserver(()=>fit()); ro.observe(grid); cv._ro=ro; }catch(_){ } }
   let lx=0, ly=0, activeId=null, activeType=null;
@@ -466,6 +471,7 @@ function sizeCanvas(cv,grid){
     // (예전 touchType 방식은 아이패드 사파리에서만 펜을 알아봐서, 갤럭시탭에서는 손바닥도 그려졌음)
     const PALM=45;                                   // 닿은 면이 이보다 크면(px) 손바닥으로 보고 무시
     cv.addEventListener('pointerdown',e=>{
+      fit();                                        // 쓰기 직전 칸 크기 맞춤(안전장치)
       if(e.pointerType==='pen'){ markPenUsed(); penDownG=true; }
       else if(e.pointerType==='touch'){
         // 펜을 쓴 적 있거나 펜이 닿아 있으면 손은 완전 무시. 펜이 없을 땐 손가락 하나만, 넓게 닿으면 손바닥이라 무시
@@ -503,6 +509,7 @@ function sizeCanvas(cv,grid){
     // iOS/태블릿: 터치이벤트 + touchType으로 팜리젝션(펜 있으면 펜만, 없으면 손가락). 애플펜슬에 안정적.
     const hasStylus=list=>{ for(const t of list){ if(t.touchType==='stylus') return true; } return false; };
     cv.addEventListener('touchstart',e=>{
+      fit();                                        // 쓰기 직전 칸 크기 맞춤(안전장치)
       if(hasStylus(e.changedTouches)) markPenUsed();
       const stylusNow=hasStylus(e.touches); let t=null;
       for(const ct of e.changedTouches){
@@ -521,7 +528,7 @@ function sizeCanvas(cv,grid){
   } else {
     // 데스크톱: 마우스/포인터
     let drawing=false;
-    cv.addEventListener('pointerdown',e=>{ drawing=true; const[x,y]=P(e.clientX,e.clientY); lx=x; ly=y; dot(x,y); try{cv.setPointerCapture(e.pointerId);}catch(_){ } e.preventDefault(); },{passive:false});
+    cv.addEventListener('pointerdown',e=>{ fit(); drawing=true; const[x,y]=P(e.clientX,e.clientY); lx=x; ly=y; dot(x,y); try{cv.setPointerCapture(e.pointerId);}catch(_){ } e.preventDefault(); },{passive:false});
     cv.addEventListener('pointermove',e=>{ if(!drawing) return; const[x,y]=P(e.clientX,e.clientY); lineTo(x,y); e.preventDefault(); },{passive:false});
     const pe=()=>{ drawing=false; }; cv.addEventListener('pointerup',pe); cv.addEventListener('pointercancel',pe);
   }
