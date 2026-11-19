@@ -646,6 +646,17 @@ document.addEventListener('keydown',function(e){if(e.key==='Escape') hlpClose();
 })();
 </script>
 <!-- VISITOR_VERSION_END -->
+<script>
+/* 방문자 현황판용 (엄마만 봄, 화면에는 안 나옴. 숫자만 보내고 기기 정보는 안 보냄)
+   - 처음 온 기기 수: 기기마다 처음 한 번만 dictation-people
+   - 테스트(내 컴퓨터)에서 연 것은 안 셈 */
+(function () {
+  if (location.hostname !== 'godpen65-jpg.github.io') return;
+  var U = 'https://abacus.jasoncameron.dev/hit/godpen65-sites/', K = 'dictation';
+  try { if (localStorage.getItem('people-counted:' + K)) return; } catch (e) { return; }
+  fetch(U + K + '-people').then(function (r) { if (r.ok) try { localStorage.setItem('people-counted:' + K, '1'); } catch (e) {} }).catch(function () {});
+})();
+</script>
 <!--FLASH_START-->
 <style>
 #fc{position:fixed;inset:0;z-index:99990;background:#fff;color:#12212e;display:none;
